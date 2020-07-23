@@ -30,7 +30,7 @@ jobs:
           destination: tr1
       - store_test_results:
           path: test-reports/
-          
+
 workflows:
   main:
     jobs:
