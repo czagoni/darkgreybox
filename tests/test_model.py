@@ -6,7 +6,7 @@ import unittest
 from darkgreybox.model import DarkGreyModel, TiTh, TiTeTh, TiTeThRia
 
 
-class TestDGM(DarkGreyModel):
+class DGMTest(DarkGreyModel):
 
     def model(self, params, **inputs):
 
@@ -30,7 +30,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'X': {'value': 0.01}}
         inputs = {'Z': np.array([10, 20])}
         
-        result = TestDGM(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
+        result = DGMTest(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
 
         self.assertAlmostEqual(1, result.params['Y0'].value, places=3)
         self.assertAlmostEqual(0.1, result.params['X'].value, places=3)
@@ -42,7 +42,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'X': {'value': 0.01, 'max': 0.05}}
         inputs = {'Z': np.array([10, 20])}
         
-        result = TestDGM(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
+        result = DGMTest(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
 
         self.assertAlmostEqual(2, result.params['Y0'].value, places=3)
         self.assertAlmostEqual(0.05, result.params['X'].value, places=3)
@@ -54,7 +54,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'X': {'value': 0.01, 'vary': True}}
         inputs = {'Z': np.array([10, 20])}
         
-        result = TestDGM(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
+        result = DGMTest(y=y, rec_duration=1, inputs=inputs, params=params, method='nelder').fit()
 
         self.assertAlmostEqual(10, result.params['Y0'].value, places=3)
         self.assertAlmostEqual(0.1, result.params['X'].value, places=3)
