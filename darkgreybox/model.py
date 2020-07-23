@@ -79,6 +79,12 @@ class TiTeThRia(DarkGreyModel):
     '''
     A DarkGrey Model representing a TiTeThRia RC-equivalent circuit
 
+    Notes
+    -----
+    See "Bacher & Madsen (2011) Identifying suitable models for the heat dynamics of buildings. 
+    Energy and Buildings. 43. 1511-1522. 10.1016/j.enbuild.2011.02.005." for a complete description
+    of RC thermal models and the eqiuvalent circuit diagram of TiTeThRia.
+
     ~~~~
     # load data from e.g. pandas
     df = pd.read_csv()
@@ -114,7 +120,7 @@ class TiTeThRia(DarkGreyModel):
     result = TiTeTh(y, inputs, params, method='nelder').fit()
     ~~~~
     '''   
-    
+
     def model(self, params, **inputs):
         '''
         The system of differential equations describing the model
@@ -185,6 +191,12 @@ class TiTeThRia(DarkGreyModel):
 class TiTeTh(DarkGreyModel):
     '''
     A DarkGrey Model representing a TiTeTh RC-equivalent circuit
+
+    Notes
+    -----
+    See "Bacher & Madsen (2011) Identifying suitable models for the heat dynamics of buildings. 
+    Energy and Buildings. 43. 1511-1522. 10.1016/j.enbuild.2011.02.005." for a complete description
+    of RC thermal models and the eqiuvalent circuit diagram of TiTeTh.
 
     ~~~~
     # load data from e.g. pandas
@@ -288,6 +300,12 @@ class TiTeTh(DarkGreyModel):
 class TiTh(DarkGreyModel):
     '''
     A DarkGrey Model representing a TiTh RC-equivalent circuit
+
+    Notes
+    -----
+    See "Bacher & Madsen (2011) Identifying suitable models for the heat dynamics of buildings. 
+    Energy and Buildings. 43. 1511-1522. 10.1016/j.enbuild.2011.02.005." for a complete description
+    of RC thermal models and the eqiuvalent circuit diagram of TiTh.
 
     ~~~~
     # load data from e.g. pandas
