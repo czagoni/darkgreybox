@@ -8,15 +8,29 @@ jobs:
     executor: python/default
     steps:
       - checkout
-      - python/load-cache
+      - run: mkdir test-reports
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "setup.py" }}
       - run:
-          command: pip install -e .'[dev,test]'
           name: Install dependencies
-      - python/save-cache
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -e .'[dev,test]'
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - "venv"
       - run:
-          command: pytest
-          name: Test
-
+          command: |
+            . venv/bin/activate
+            pytest
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
+      - store_test_results:
+          path: test-reports/
+          
 workflows:
   main:
     jobs:
