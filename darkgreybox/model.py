@@ -3,42 +3,33 @@ from abc import ABC
 from lmfit import minimize, Parameters
 
 
-#TODO: move inputs and y to fit method
+#TODO: fit method to return self
 #TODO: add predict method
 #TODO: add custom objective function
-#TODO: rename inputs to X
+#TODO: check obj_func args kwargs signature
+
 
 class DarkGreyModel(ABC):
     '''
     Abstract Base Class for DarkGrey Models
     '''
     
-    def __init__(self, y, rec_duration, X, params, method):
+    def __init__(self, params, rec_duration):
         '''
         Initialises the model instance
 
         Parameters
         ----------
-        y : np.array
-            The measured variable's values for the minimiser to fit to
-        rec_duration : float
-            The duration of each measurement record in hours 
-        X : dict
-            A dictionary of input values for the fitting - these values are fixed during the fit.
         params : dict
             A dictionary of parameters for the fitting. Key - value pairs should follow the 
             `lmfit.Parameters` declaration: 
             e.g. {'Y' : {'value': 10, 'min': 0, 'max': 30}} - sets the initial value and the bounds 
             for parameter `Y` 
-        method : str
-            Name of the fitting method to use. Valid values are described in:
-            `lmfit.minimize`
+        rec_duration : float
+            The duration of each measurement record in hours 
         '''
         
-        self.y = y
-        self.X = X
         self.params = params
-        self.method = method
         self.result = None
         
         # convert the params dict into lmfit parameters
@@ -50,12 +41,21 @@ class DarkGreyModel(ABC):
                 self.params.add(k, **v)
 
         # set the number of records based on the measured variable's values
-        self.num_rec = len(self.y)
         self.rec_duration = rec_duration
             
-    def fit(self):
+    def fit(self, X, y, method):
         '''
         Fits the model by minimising the objective function value
+
+        Parameters
+        ----------
+        X : dict
+            A dictionary of input values for the fitting - these values are fixed during the fit.
+        y : np.array
+            The measured variable's values for the minimiser to fit to
+        method : str
+            Name of the fitting method to use. Valid values are described in:
+            `lmfit.minimize`
 
         Returns
         -------
@@ -65,15 +65,15 @@ class DarkGreyModel(ABC):
         '''    
 
         # we are passing the X to minimise as kwargs 
-        self.result = minimize(self.obj_func, self.params, kws=self.X, method=self.method)
+        self.result = minimize(self.obj_func, self.params, args=y, kws=X, method=method)
         return self.result
  
-    def obj_func(self, params, **X):
+    def obj_func(self, params, *y, **X):
         '''
         Computes the residual between measured data and fitted data
         '''
 
-        return ((self.model(params, **X)[0] - self.y)).ravel()
+        return ((self.model(params, **X)[0] - y)).ravel()
     
     def model(self, params, **X):
         '''
@@ -160,9 +160,11 @@ class TiTeThRia(DarkGreyModel):
             Fitted heating system temperature values
         '''       
 
-        Ti = np.zeros(self.num_rec)
-        Te = np.zeros(self.num_rec)
-        Th = np.zeros(self.num_rec)
+        num_rec = len(X['Ta'])
+
+        Ti = np.zeros(num_rec)
+        Te = np.zeros(num_rec)
+        Th = np.zeros(num_rec)
        
         # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
@@ -181,7 +183,7 @@ class TiTeThRia(DarkGreyModel):
         Ta = X['Ta']
         Ph = X['Ph']
 
-        for i in range(1, self.num_rec):
+        for i in range(1, num_rec):
 
             # the model equations
             dTi = ((Te[i-1] - Ti[i-1]) / (Rie * Ci) + (Th[i-1] - Ti[i-1]) / (Rih * Ci) +
@@ -271,9 +273,11 @@ class TiTeTh(DarkGreyModel):
             Fitted heating system temperature values
         '''            
 
-        Ti = np.zeros(self.num_rec)
-        Te = np.zeros(self.num_rec)
-        Th = np.zeros(self.num_rec)
+        num_rec = len(X['Ta'])
+
+        Ti = np.zeros(num_rec)
+        Te = np.zeros(num_rec)
+        Th = np.zeros(num_rec)
         
         # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
@@ -291,7 +295,7 @@ class TiTeTh(DarkGreyModel):
         Ta = X['Ta']
         Ph = X['Ph']
 
-        for i in range(1, self.num_rec):
+        for i in range(1, num_rec):
 
             # the model equations
             dTi = ((Te[i-1] - Ti[i-1]) / (Rie * Ci) + (Th[i-1] - Ti[i-1]) / (Rih * Ci)) * self.rec_duration 
@@ -372,8 +376,10 @@ class TiTh(DarkGreyModel):
             Fitted heating system temperature values
         '''            
 
-        Ti = np.zeros(self.num_rec)
-        Th = np.zeros(self.num_rec)
+        num_rec = len(X['Ta'])
+
+        Ti = np.zeros(num_rec)
+        Th = np.zeros(num_rec)
         
         # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
@@ -388,7 +394,7 @@ class TiTh(DarkGreyModel):
         Ta = X['Ta']
         Ph = X['Ph']
 
-        for i in range(1, self.num_rec):
+        for i in range(1, num_rec):
 
             # the model equations
             dTi = ((Ta[i-1] - Ti[i-1]) / (Ria * Ci) + (Th[i-1] - Ti[i-1]) / (Rih * Ci)) * self.rec_duration 
