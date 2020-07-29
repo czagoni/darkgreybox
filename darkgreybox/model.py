@@ -3,12 +3,17 @@ from abc import ABC
 from lmfit import minimize, Parameters
 
 
+#TODO: move inputs and y to fit method
+#TODO: add predict method
+#TODO: add custom objective function
+#TODO: rename inputs to X
+
 class DarkGreyModel(ABC):
     '''
     Abstract Base Class for DarkGrey Models
     '''
     
-    def __init__(self, y, rec_duration, inputs, params, method):
+    def __init__(self, y, rec_duration, X, params, method):
         '''
         Initialises the model instance
 
@@ -18,7 +23,7 @@ class DarkGreyModel(ABC):
             The measured variable's values for the minimiser to fit to
         rec_duration : float
             The duration of each measurement record in hours 
-        inputs : dict
+        X : dict
             A dictionary of input values for the fitting - these values are fixed during the fit.
         params : dict
             A dictionary of parameters for the fitting. Key - value pairs should follow the 
@@ -31,15 +36,18 @@ class DarkGreyModel(ABC):
         '''
         
         self.y = y
-        self.inputs = inputs
+        self.X = X
         self.params = params
         self.method = method
         self.result = None
         
         # convert the params dict into lmfit parameters
-        self.params = Parameters()
-        for k, v in params.items():
-            self.params.add(k, **v)
+        if isinstance(params, Parameters):
+            self.params = params
+        else:
+            self.params = Parameters()
+            for k, v in params.items():
+                self.params.add(k, **v)
 
         # set the number of records based on the measured variable's values
         self.num_rec = len(self.y)
@@ -56,18 +64,18 @@ class DarkGreyModel(ABC):
             goodness-of-fit statistics.
         '''    
 
-        # we are passing the inputs to minimise as kwargs 
-        self.result = minimize(self.obj_func, self.params, kws=self.inputs, method=self.method)
+        # we are passing the X to minimise as kwargs 
+        self.result = minimize(self.obj_func, self.params, kws=self.X, method=self.method)
         return self.result
  
-    def obj_func(self, params, **inputs):
+    def obj_func(self, params, **X):
         '''
         Computes the residual between measured data and fitted data
         '''
 
-        return ((self.model(params, **inputs)[0] - self.y)).ravel()
+        return ((self.model(params, **X)[0] - self.y)).ravel()
     
-    def model(self, params, **inputs):
+    def model(self, params, **X):
         '''
         A system of differential equations describing the thermal model
         '''
@@ -93,7 +101,7 @@ class TiTeThRia(DarkGreyModel):
     y = df['Internal Temperature [˚C]'].values
 
     # input values that will not change during the fit
-    inputs = {
+    X = {
         'Ph': df['Boiler Power Output [kW]'].values,
         'Ta': df['Outside Air Temperature [˚C]'].values,
         'Th': df['Heating Circuit Temperature [˚C]'].values
@@ -112,16 +120,16 @@ class TiTeThRia(DarkGreyModel):
         'Ch': {'value': 2.55, 'vary': False},
         'Rie': {'value': 0.1},
         'Rea': {'value': 1},
-        'Ria': {'value': 2}
+        'Ria': {'value': 2},
         'Rih': {'value': 0.65, 'vary': False}
     }
 
     # fit using the Nelder-Mead method
-    result = TiTeTh(y, inputs, params, method='nelder').fit()
+    result = TiTeTh(y, X, params, method='nelder').fit()
     ~~~~
     '''   
 
-    def model(self, params, **inputs):
+    def model(self, params, **X):
         '''
         The system of differential equations describing the model
 
@@ -138,7 +146,7 @@ class TiTeThRia(DarkGreyModel):
             - 'Ci' : Thermal capacitance of internal
             - 'Ch' : Thermal capacitance of heating system
             - 'Ce' : Thermal capacitance of thermal envelope
-        inputs : dict
+        X : dict
             - 'Ta' : List of ambient temperature values
             - 'Ph' : List of heating system power output values
 
@@ -156,7 +164,7 @@ class TiTeThRia(DarkGreyModel):
         Te = np.zeros(self.num_rec)
         Th = np.zeros(self.num_rec)
        
-        # alias these params/inputs so that the differential equations look pretty
+        # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
         Te[0] = params['Te0']
         Th[0] = params['Th0']
@@ -170,8 +178,8 @@ class TiTeThRia(DarkGreyModel):
         Ce = params['Ce'].value
         Ch = params['Ch'].value
 
-        Ta = inputs['Ta']
-        Ph = inputs['Ph']
+        Ta = X['Ta']
+        Ph = X['Ph']
 
         for i in range(1, self.num_rec):
 
@@ -206,7 +214,7 @@ class TiTeTh(DarkGreyModel):
     y = df['Internal Temperature [˚C]'].values
 
     # input values that will not change during the fit
-    inputs = {
+    X = {
         'Ph': df['Boiler Power Output [kW]'].values,
         'Ta': df['Outside Air Temperature [˚C]'].values,
         'Th': df['Heating Circuit Temperature [˚C]'].values
@@ -229,11 +237,11 @@ class TiTeTh(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTeTh(y, inputs, params, method='nelder').fit()
+    result = TiTeTh(y, X, params, method='nelder').fit()
     ~~~~
     '''
 
-    def model(self, params, **inputs):
+    def model(self, params, **X):
         '''
         The system of differential equations describing the model
 
@@ -249,7 +257,7 @@ class TiTeTh(DarkGreyModel):
             - 'Ci' : Thermal capacitance of internal
             - 'Ch' : Thermal capacitance of heating system
             - 'Ce' : Thermal capacitance of thermal envelope
-        inputs : dict
+        X : dict
             - 'Ta' : List of ambient temperature values
             - 'Ph' : List of heating system power output values
 
@@ -267,7 +275,7 @@ class TiTeTh(DarkGreyModel):
         Te = np.zeros(self.num_rec)
         Th = np.zeros(self.num_rec)
         
-        # alias these params/inputs so that the differential equations look pretty
+        # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
         Te[0] = params['Te0']
         Th[0] = params['Th0']
@@ -280,8 +288,8 @@ class TiTeTh(DarkGreyModel):
         Ce = params['Ce'].value
         Ch = params['Ch'].value
 
-        Ta = inputs['Ta']
-        Ph = inputs['Ph']
+        Ta = X['Ta']
+        Ph = X['Ph']
 
         for i in range(1, self.num_rec):
 
@@ -315,7 +323,7 @@ class TiTh(DarkGreyModel):
     y = df['Internal Temperature [˚C]'].values
 
     # input values that will not change during the fit
-    inputs = {
+    X = {
         'Ph': df['Boiler Power Output [kW]'].values,
         'Ta': df['Outside Air Temperature [˚C]'].values,
         'Th': df['Heating Circuit Temperature [˚C]'].values
@@ -335,11 +343,11 @@ class TiTh(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTh(y, inputs, params, method='nelder').fit()
+    result = TiTh(y, X, params, method='nelder').fit()
     ~~~~
     '''
     
-    def model(self, params, **inputs):
+    def model(self, params, **X):
         '''
         The system of differential equations describing the model
 
@@ -352,7 +360,7 @@ class TiTh(DarkGreyModel):
             - 'Ria' : Thermal resistance between internal and ambient
             - 'Ci' : Thermal capacitance of internal
             - 'Ch' : Thermal capacitance of heating system
-        inputs : dict
+        X : dict
             - 'Ta' : List of ambient temperature values
             - 'Ph' : List of heating system power output values
 
@@ -367,7 +375,7 @@ class TiTh(DarkGreyModel):
         Ti = np.zeros(self.num_rec)
         Th = np.zeros(self.num_rec)
         
-        # alias these params/inputs so that the differential equations look pretty
+        # alias these params/X so that the differential equations look pretty
         Ti[0] = params['Ti0']
         Th[0] = params['Th0']
 
@@ -377,8 +385,8 @@ class TiTh(DarkGreyModel):
         Ci = params['Ci'].value
         Ch = params['Ch'].value
 
-        Ta = inputs['Ta']
-        Ph = inputs['Ph']
+        Ta = X['Ta']
+        Ph = X['Ph']
 
         for i in range(1, self.num_rec):
 
