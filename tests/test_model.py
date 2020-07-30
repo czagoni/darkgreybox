@@ -76,6 +76,32 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
 
+    def test_fit_refit(self):
+
+        y = np.array([1, 2])
+        params = {'Y0': {'value': 10},
+                  'R': {'value': 0.01}}
+        X = {'Z': np.array([10, 20])}
+        
+        m = DGMTest(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder') \
+                .fit(X=X, y=y, method='nelder', refit=True)
+
+        self.assertAlmostEqual(1, m.result.params['Y0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
+
+    def test_fit_refit_raises_exception(self):
+
+        y = np.array([1, 2])
+        params = {'Y0': {'value': 10},
+                  'R': {'value': 0.01}}
+        X = {'Z': np.array([10, 20])}
+        
+        with self.assertRaisesRegex(ValueError, expected_regex="Model has no result to be used with refit."):
+             DGMTest(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder', refit=True)
+
+
 class TiThTest(unittest.TestCase):
 
     def test_model(self):

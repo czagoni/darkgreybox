@@ -40,7 +40,7 @@ class DarkGreyModel(ABC):
         # set the number of records based on the measured variable's values
         self.rec_duration = rec_duration
             
-    def fit(self, X, y, method, obj_func=None):
+    def fit(self, X, y, method, obj_func=None, refit=False):
         '''
         Fits the model by minimising the objective function value
 
@@ -57,6 +57,10 @@ class DarkGreyModel(ABC):
             The objective function that is passed to `lmfit.minimize`/
             It must have (params, *args, **kwargs) as its method signature.
             Default: `def_obj_func`
+        refit : boolean
+            Whether to refit using the last results parameters.
+            Use params passed in the constructor if False
+            Use result.params if True (refit)
 
         Returns
         -------
@@ -64,10 +68,14 @@ class DarkGreyModel(ABC):
             Object containing the optimized parameters and several
             goodness-of-fit statistics.
         '''    
+
+        if self.result is None and refit:
+            raise ValueError("Model has no result to be used with refit. Call fit with refit=False"
+                             " at least once before a refit")
         
         # we are passing X, y to minimise as kwargs 
         self.result = minimize(obj_func or self.def_obj_func, 
-                               self.params, 
+                               self.result.params if refit else self.params, 
                                kws={'model': self.model, 'X': X, 'y': y}, 
                                method=method)
 
