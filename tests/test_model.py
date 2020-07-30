@@ -61,6 +61,20 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
 
+    def test_fit_custom_obj_func(self):
+
+        def obj_func(params, *args, **kwargs):
+            return ((kwargs['model'](params=params, X=kwargs['X'])[0] - kwargs['y']) ** 2).ravel()    
+
+        y = np.array([1, 2])
+        params = {'Y0': {'value': 10, 'vary': False},
+                  'R': {'value': 0.01, 'vary': True}}
+        X = {'Z': np.array([10, 20])}
+        
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', obj_func=obj_func)
+
+        self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
 
 class TiThTest(unittest.TestCase):
 

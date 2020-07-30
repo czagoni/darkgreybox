@@ -4,8 +4,6 @@ from lmfit import minimize, Parameters
 
 
 #TODO: add predict method
-#TODO: add custom objective function
-#TODO: move general TiTh docstring to class level
 
 
 class DarkGreyModel(ABC):
@@ -42,7 +40,7 @@ class DarkGreyModel(ABC):
         # set the number of records based on the measured variable's values
         self.rec_duration = rec_duration
             
-    def fit(self, X, y, method):
+    def fit(self, X, y, method, obj_func=None):
         '''
         Fits the model by minimising the objective function value
 
@@ -55,6 +53,10 @@ class DarkGreyModel(ABC):
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
+        obj_func : function
+            The objective function that is passed to `lmfit.minimize`/
+            It must have (params, *args, **kwargs) as its method signature.
+            Default: `def_obj_func`
 
         Returns
         -------
@@ -62,16 +64,14 @@ class DarkGreyModel(ABC):
             Object containing the optimized parameters and several
             goodness-of-fit statistics.
         '''    
-
+        
         # we are passing X, y to minimise as kwargs 
-        self.result = minimize(self.obj_func, self.params, kws={'X': X, 'y': y}, method=method)
+        self.result = minimize(obj_func or self.def_obj_func, 
+                               self.params, 
+                               kws={'model': self.model, 'X': X, 'y': y}, 
+                               method=method)
+
         return self
- 
-    def obj_func(self, params, *args, **kwargs):
-        '''
-        Computes the residual between measured data and fitted data
-        '''
-        return ((self.model(params=params, X=kwargs['X'])[0] - kwargs['y'])).ravel()
     
     def model(self, params, X):
         '''
@@ -79,8 +79,17 @@ class DarkGreyModel(ABC):
         '''
 
         pass
+
+    @staticmethod
+    def def_obj_func(params, *args, **kwargs):
+        '''
+        Default objective function
+        Computes the residual between measured data and fitted data
+        The model, X and y are passed in as kwargs by `lmfit.minimize`
+        '''
+        return ((kwargs['model'](params=params, X=kwargs['X'])[0] - kwargs['y'])).ravel()        
         
-        
+
 class TiTeThRia(DarkGreyModel):
     '''
     A DarkGrey Model representing a TiTeThRia RC-equivalent circuit
