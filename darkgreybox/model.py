@@ -3,10 +3,10 @@ from abc import ABC
 from lmfit import minimize, Parameters
 
 
-#TODO: fit method to return self
 #TODO: add predict method
 #TODO: add custom objective function
 #TODO: check obj_func args kwargs signature
+#TODO: move general TiTh docstring to class level
 
 
 class DarkGreyModel(ABC):
@@ -66,7 +66,7 @@ class DarkGreyModel(ABC):
 
         # we are passing the X to minimise as kwargs 
         self.result = minimize(self.obj_func, self.params, args=y, kws=X, method=method)
-        return self.result
+        return self
  
     def obj_func(self, params, *y, **X):
         '''
