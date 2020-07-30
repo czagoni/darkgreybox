@@ -32,10 +32,10 @@ class DarkGreyModelTest(unittest.TestCase):
                   'R': {'value': 0.01}}
         X = {'Z': np.array([10, 20])}
         
-        result = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(1, result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, result.params['R'].value, places=3)
+        self.assertAlmostEqual(1, m.result.params['Y0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
        
     def test_fit_min_max(self):
 
@@ -44,10 +44,10 @@ class DarkGreyModelTest(unittest.TestCase):
                   'R': {'value': 0.01, 'max': 0.05}}
         X = {'Z': np.array([10, 20])}
         
-        result = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(2, result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.05, result.params['R'].value, places=3)
+        self.assertAlmostEqual(2, m.result.params['Y0'].value, places=3)
+        self.assertAlmostEqual(0.05, m.result.params['R'].value, places=3)
 
     def test_fit_vary(self):
 
@@ -56,10 +56,10 @@ class DarkGreyModelTest(unittest.TestCase):
                   'R': {'value': 0.01, 'vary': True}}
         X = {'Z': np.array([10, 20])}
         
-        result = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(10, result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, result.params['R'].value, places=3)
+        self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
 
 
 class TiThTest(unittest.TestCase):
