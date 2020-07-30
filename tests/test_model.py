@@ -8,7 +8,7 @@ from darkgreybox.model import DarkGreyModel, TiTh, TiTeTh, TiTeThRia
 
 class DGMTest(DarkGreyModel):
 
-    def model(self, params, **X):
+    def model(self, params, X):
 
         num_rec = len(X['Z'])
 
@@ -81,7 +81,7 @@ class TiThTest(unittest.TestCase):
         }
         
         m = TiTh(params=params, rec_duration=1)
-        Ti, Th = m.model(m.params, **X)
+        Ti, Th = m.model(m.params, X)
 
         assert_array_equal(np.array([10, 30, 10]), Ti)
         assert_array_equal(np.array([20, 30, 30]), Th)
@@ -110,7 +110,7 @@ class TiThTest(unittest.TestCase):
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, **X)[0])
+        assert_array_equal(y, m.model(result.params, X)[0])
 
 
 class TiTeThTest(unittest.TestCase):
@@ -135,7 +135,7 @@ class TiTeThTest(unittest.TestCase):
         }
         
         m = TiTeTh(params=params, rec_duration=1)
-        Ti, Te, Th = m.model(m.params, **X)
+        Ti, Te, Th = m.model(m.params, X)
 
         assert_array_equal(np.array([20, 12.5, 16.5625]), Ti)
         assert_array_equal(np.array([10, 20, 10]), Te)
@@ -168,7 +168,7 @@ class TiTeThTest(unittest.TestCase):
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, **X)[0])
+        assert_array_equal(y, m.model(result.params, X)[0])
 
 
 class TiTeThRiaTest(unittest.TestCase):
@@ -194,7 +194,7 @@ class TiTeThRiaTest(unittest.TestCase):
         }
         
         m = TiTeThRia(params=params, rec_duration=1)
-        Ti, Te, Th = m.model(m.params, **X)
+        Ti, Te, Th = m.model(m.params, X)
 
         assert_array_equal(np.array([20, 11.875, 16.2890625]), Ti)
         assert_array_equal(np.array([10, 20, 9.375]), Te)
@@ -228,4 +228,4 @@ class TiTeThRiaTest(unittest.TestCase):
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, **X)[0])
+        assert_array_equal(y, m.model(result.params, X)[0])
