@@ -5,7 +5,6 @@ from lmfit import minimize, Parameters
 
 #TODO: add predict method
 #TODO: add custom objective function
-#TODO: check obj_func args kwargs signature
 #TODO: move general TiTh docstring to class level
 
 
@@ -64,18 +63,17 @@ class DarkGreyModel(ABC):
             goodness-of-fit statistics.
         '''    
 
-        # we are passing the X to minimise as kwargs 
-        self.result = minimize(self.obj_func, self.params, args=y, kws=X, method=method)
+        # we are passing X, y to minimise as kwargs 
+        self.result = minimize(self.obj_func, self.params, kws={'X': X, 'y': y}, method=method)
         return self
  
-    def obj_func(self, params, *y, **X):
+    def obj_func(self, params, *args, **kwargs):
         '''
         Computes the residual between measured data and fitted data
         '''
-
-        return ((self.model(params, **X)[0] - y)).ravel()
+        return ((self.model(params=params, X=kwargs['X'])[0] - kwargs['y'])).ravel()
     
-    def model(self, params, **X):
+    def model(self, params, X):
         '''
         A system of differential equations describing the thermal model
         '''
@@ -129,7 +127,7 @@ class TiTeThRia(DarkGreyModel):
     ~~~~
     '''   
 
-    def model(self, params, **X):
+    def model(self, params, X):
         '''
         The system of differential equations describing the model
 
@@ -243,7 +241,7 @@ class TiTeTh(DarkGreyModel):
     ~~~~
     '''
 
-    def model(self, params, **X):
+    def model(self, params, X):
         '''
         The system of differential equations describing the model
 
@@ -351,7 +349,7 @@ class TiTh(DarkGreyModel):
     ~~~~
     '''
     
-    def model(self, params, **X):
+    def model(self, params, X):
         '''
         The system of differential equations describing the model
 
