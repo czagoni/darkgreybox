@@ -20,7 +20,7 @@ class DGMTest(DarkGreyModel):
         for i in range(1, num_rec):
             Y[i] = Z[i] * R
 
-        return (Y, )   
+        return (Y, )  
 
 
 class DarkGreyModelTest(unittest.TestCase):
@@ -100,6 +100,30 @@ class DarkGreyModelTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, expected_regex="Model has no result to be used with refit."):
              DGMTest(params=params, rec_duration=1) \
                 .fit(X=X, y=y, method='nelder', refit=True)
+
+    def test_predict(self):
+
+        y = np.array([1, 2])
+        params = {'Y0': {'value': 10},
+                  'R': {'value': 0.01}}
+        X = {'Z': np.array([10, 20])}
+        
+        result_y, = DGMTest(params=params, rec_duration=1) \
+                        .fit(X=X, y=y, method='nelder') \
+                        .predict({'Z': np.array([10, 20, 30])})
+
+        self.assertAlmostEqual(1, result_y[0], places=3)
+        self.assertAlmostEqual(2, result_y[1], places=3)
+        self.assertAlmostEqual(3, result_y[2], places=3)
+
+    def test_predict_raises_exception(self):
+
+        params = {'Y0': {'value': 10},
+                  'R': {'value': 0.01}}
+        
+        with self.assertRaisesRegex(ValueError, expected_regex="Model has no result to be used with predict."):
+            DGMTest(params=params, rec_duration=1) \
+                .predict({'Z': np.array([10, 20, 30])})
 
 
 class TiThTest(unittest.TestCase):

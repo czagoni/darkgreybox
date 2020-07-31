@@ -3,7 +3,8 @@ from abc import ABC
 from lmfit import minimize, Parameters
 
 
-#TODO: add predict method
+#TODO: allow different start conditions in predict
+#TODO: add exception
 
 
 class DarkGreyModel(ABC):
@@ -80,6 +81,16 @@ class DarkGreyModel(ABC):
                                method=method)
 
         return self
+
+    def predict(self, X):
+        '''
+        '''
+
+        if self.result is None:
+            raise ValueError("Model has no result to be used with predict. Call fit with refit=False"
+                             " at least once before predict")
+
+        return self.model(self.result.params, X)
     
     def model(self, params, X):
         '''
