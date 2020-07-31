@@ -5,24 +5,25 @@ import unittest
 
 from darkgreybox.model import (DarkGreyModel, 
                                TiTh, TiTeTh, TiTeThRia, 
-                               ModelNotFitError)
+                               ModelNotFitError,
+                               DarkGreyModelResult)
 
 
 class DGMTest(DarkGreyModel):
 
     def model(self, params, X):
 
-        num_rec = len(X['Z'])
+        num_rec = len(X['C'])
 
-        Y = np.zeros(num_rec)
-        Y[0] = params['Y0']
-        R = params['R'].value
-        Z = X['Z']
+        A = np.zeros(num_rec)
+        A[0] = params['A0']
+        B = params['B'].value
+        C = X['C']
 
         for i in range(1, num_rec):
-            Y[i] = Z[i] * R
+            A[i] = C[i] * B
 
-        return (Y, )  
+        return DarkGreyModelResult(A)  
 
 
 class DarkGreyModelTest(unittest.TestCase):
@@ -30,74 +31,74 @@ class DarkGreyModelTest(unittest.TestCase):
     def test_fit(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10},
-                  'R': {'value': 0.01}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
+        X = {'C': np.array([10, 20])}
         
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(1, m.result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
+        self.assertAlmostEqual(1, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
        
     def test_fit_min_max(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10, 'min': 2},
-                  'R': {'value': 0.01, 'max': 0.05}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10, 'min': 2},
+                  'B': {'value': 0.01, 'max': 0.05}}
+        X = {'C': np.array([10, 20])}
         
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(2, m.result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.05, m.result.params['R'].value, places=3)
+        self.assertAlmostEqual(2, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.05, m.result.params['B'].value, places=3)
 
     def test_fit_vary(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10, 'vary': False},
-                  'R': {'value': 0.01, 'vary': True}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10, 'vary': False},
+                  'B': {'value': 0.01, 'vary': True}}
+        X = {'C': np.array([10, 20])}
         
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
-        self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
+        self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
 
     def test_fit_custom_obj_func(self):
 
         def obj_func(params, *args, **kwargs):
-            return ((kwargs['model'](params=params, X=kwargs['X'])[0] - kwargs['y']) ** 2).ravel()    
+            return ((kwargs['model'](params=params, X=kwargs['X']).Z - kwargs['y']) ** 2).ravel()    
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10, 'vary': False},
-                  'R': {'value': 0.01, 'vary': True}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10, 'vary': False},
+                  'B': {'value': 0.01, 'vary': True}}
+        X = {'C': np.array([10, 20])}
         
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', obj_func=obj_func)
 
-        self.assertAlmostEqual(10, m.result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
+        self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
 
     def test_fit_refit(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10},
-                  'R': {'value': 0.01}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
+        X = {'C': np.array([10, 20])}
         
         m = DGMTest(params=params, rec_duration=1) \
                 .fit(X=X, y=y, method='nelder') \
                 .fit(X=X, y=y, method='nelder', refit=True)
 
-        self.assertAlmostEqual(1, m.result.params['Y0'].value, places=3)
-        self.assertAlmostEqual(0.1, m.result.params['R'].value, places=3)
+        self.assertAlmostEqual(1, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
 
     def test_fit_refit_raises_exception(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10},
-                  'R': {'value': 0.01}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
+        X = {'C': np.array([10, 20])}
         
         with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with refit."):
              DGMTest(params=params, rec_duration=1) \
@@ -106,26 +107,26 @@ class DarkGreyModelTest(unittest.TestCase):
     def test_predict(self):
 
         y = np.array([1, 2])
-        params = {'Y0': {'value': 10},
-                  'R': {'value': 0.01}}
-        X = {'Z': np.array([10, 20])}
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
+        X = {'C': np.array([10, 20])}
         
-        result_y, = DGMTest(params=params, rec_duration=1) \
-                        .fit(X=X, y=y, method='nelder') \
-                        .predict({'Z': np.array([10, 20, 30])})
+        actual_result = DGMTest(params=params, rec_duration=1) \
+                            .fit(X=X, y=y, method='nelder') \
+                            .predict({'C': np.array([10, 20, 30])})
 
-        self.assertAlmostEqual(1, result_y[0], places=3)
-        self.assertAlmostEqual(2, result_y[1], places=3)
-        self.assertAlmostEqual(3, result_y[2], places=3)
+        self.assertAlmostEqual(1, actual_result.Z[0], places=3)
+        self.assertAlmostEqual(2, actual_result.Z[1], places=3)
+        self.assertAlmostEqual(3, actual_result.Z[2], places=3)
 
     def test_predict_raises_exception(self):
 
-        params = {'Y0': {'value': 10},
-                  'R': {'value': 0.01}}
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
         
         with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with predict."):
             DGMTest(params=params, rec_duration=1) \
-                .predict({'Z': np.array([10, 20, 30])})
+                .predict({'C': np.array([10, 20, 30])})
 
 
 class TiThTest(unittest.TestCase):
@@ -147,10 +148,11 @@ class TiThTest(unittest.TestCase):
         }
         
         m = TiTh(params=params, rec_duration=1)
-        Ti, Th = m.model(m.params, X)
+        actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([10, 30, 10]), Ti)
-        assert_array_equal(np.array([20, 30, 30]), Th)
+        assert_array_equal(np.array([10, 30, 10]), actual_result.Ti)
+        assert_array_equal(np.array([20, 30, 30]), actual_result.Th)
+        assert_array_equal(actual_result.Z, actual_result.Ti)
         
     def test_fit(self):
 
@@ -170,13 +172,13 @@ class TiThTest(unittest.TestCase):
             'Ph': np.array([10, 0, 0]),
         }
         
-        m = TiTh(params=params, rec_duration=1)
-        result = m.fit(X=X, y=y, method='nelder')
+        m = TiTh(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
-            self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
+            self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, X)[0])
+        assert_array_equal(y, m.model(m.result.params, X).Z)
 
 
 class TiTeThTest(unittest.TestCase):
@@ -201,11 +203,11 @@ class TiTeThTest(unittest.TestCase):
         }
         
         m = TiTeTh(params=params, rec_duration=1)
-        Ti, Te, Th = m.model(m.params, X)
+        actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([20, 12.5, 16.5625]), Ti)
-        assert_array_equal(np.array([10, 20, 10]), Te)
-        assert_array_equal(np.array([10, 13.75, 13.59375]), Th)
+        assert_array_equal(np.array([20, 12.5, 16.5625]), actual_result.Ti)
+        assert_array_equal(np.array([10, 20, 10]), actual_result.Te)
+        assert_array_equal(np.array([10, 13.75, 13.59375]), actual_result.Th)
 
     def test_fit(self):
 
@@ -228,13 +230,13 @@ class TiTeThTest(unittest.TestCase):
             'Ph': np.array([10, 0, 0]),
         }
         
-        m = TiTeTh(params=params, rec_duration=1)
-        result = m.fit(X=X, y=y, method='nelder')
+        m = TiTeTh(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
-            self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
+            self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, X)[0])
+        assert_array_equal(y, m.model(m.result.params, X).Z)
 
 
 class TiTeThRiaTest(unittest.TestCase):
@@ -260,11 +262,11 @@ class TiTeThRiaTest(unittest.TestCase):
         }
         
         m = TiTeThRia(params=params, rec_duration=1)
-        Ti, Te, Th = m.model(m.params, X)
+        actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([20, 11.875, 16.2890625]), Ti)
-        assert_array_equal(np.array([10, 20, 9.375]), Te)
-        assert_array_equal(np.array([10, 13.75, 13.515625]), Th)
+        assert_array_equal(np.array([20, 11.875, 16.2890625]), actual_result.Ti)
+        assert_array_equal(np.array([10, 20, 9.375]), actual_result.Te)
+        assert_array_equal(np.array([10, 13.75, 13.515625]), actual_result.Th)
 
     def test_fit(self):
 
@@ -288,10 +290,10 @@ class TiTeThRiaTest(unittest.TestCase):
             'Ph': np.array([10, 0, 0]),
         }
         
-        m = TiTeThRia(params=params, rec_duration=1)
-        result = m.fit(X=X, y=y, method='nelder')
+        m = TiTeThRia(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
-            self.assertAlmostEqual(v['value'], result.params[k].value, places=3)
+            self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
 
-        assert_array_equal(y, m.model(result.params, X)[0])
+        assert_array_equal(y, m.model(m.result.params, X).Z)

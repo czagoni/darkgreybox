@@ -4,12 +4,37 @@ from lmfit import minimize, Parameters
 
 
 #TODO: allow different start conditions in predict
-#TODO: add exception
-#TODO: model to return ModelResult
 
 
 class DarkGreyModelError(ValueError): pass
 class ModelNotFitError(DarkGreyModelError): pass
+
+
+class DarkGreyModelResult: 
+    '''
+    Container object that holds the results of the model
+    '''
+
+    def __init__(self, Z, **kwargs):
+        '''
+        Parameters
+        ----------
+        Z : np.array
+            The measured variable's fit / predicted values 
+        kwargs: kwargs
+            Any other parameters calculated can be passed here. 
+
+        ~~~~
+        E.g. in case of a TiTeTh model, Ti is the measured variable and Ti, Te, Th
+        variables can be passed as kwargs for easy access 
+
+        DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
+        ~~~~
+        '''
+
+        self.Z = Z
+        for key, val in kwargs.items():
+            setattr(self, key, val)
 
 
 class DarkGreyModel(ABC):
@@ -26,8 +51,8 @@ class DarkGreyModel(ABC):
         params : dict
             A dictionary of parameters for the fitting. Key - value pairs should follow the 
             `lmfit.Parameters` declaration: 
-            e.g. {'Y' : {'value': 10, 'min': 0, 'max': 30}} - sets the initial value and the bounds 
-            for parameter `Y` 
+            e.g. {'A' : {'value': 10, 'min': 0, 'max': 30}} - sets the initial value and the bounds 
+            for parameter `A` 
         rec_duration : float
             The duration of each measurement record in hours 
         '''
@@ -123,7 +148,7 @@ class DarkGreyModel(ABC):
         Computes the residual between measured data and fitted data
         The model, X and y are passed in as kwargs by `lmfit.minimize`
         '''
-        return ((kwargs['model'](params=params, X=kwargs['X'])[0] - kwargs['y'])).ravel()        
+        return ((kwargs['model'](params=params, X=kwargs['X']).Z - kwargs['y'])).ravel()        
         
 
 class TiTeThRia(DarkGreyModel):
@@ -197,7 +222,7 @@ class TiTeThRia(DarkGreyModel):
         -------
         Ti : np.array
             Fitted internal temperature values  
-        Ti : np.array
+        Te : np.array
             Fitted thermal envelope temperature values         
         Th : np.array
             Fitted heating system temperature values
@@ -238,7 +263,7 @@ class TiTeThRia(DarkGreyModel):
             Te[i] = Te[i-1] + dTe 
             Th[i] = Th[i-1] + dTh
 
-        return (Ti, Te, Th)
+        return DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
 
     
 class TiTeTh(DarkGreyModel):
@@ -310,7 +335,7 @@ class TiTeTh(DarkGreyModel):
         -------
         Ti : np.array
             Fitted internal temperature values  
-        Ti : np.array
+        Te : np.array
             Fitted thermal envelope temperature values         
         Th : np.array
             Fitted heating system temperature values
@@ -349,7 +374,7 @@ class TiTeTh(DarkGreyModel):
             Te[i] = Te[i-1] + dTe 
             Th[i] = Th[i-1] + dTh
 
-        return (Ti, Te, Th)
+        return DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
 
     
 class TiTh(DarkGreyModel):
@@ -446,4 +471,4 @@ class TiTh(DarkGreyModel):
             Ti[i] = Ti[i-1] + dTi 
             Th[i] = Th[i-1] + dTh
 
-        return (Ti, Th)
+        return DarkGreyModelResult(Ti, Ti=Ti, Th=Th)
