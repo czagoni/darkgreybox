@@ -5,6 +5,11 @@ from lmfit import minimize, Parameters
 
 #TODO: allow different start conditions in predict
 #TODO: add exception
+#TODO: model to return ModelResult
+
+
+class DarkGreyModelError(ValueError): pass
+class ModelNotFitError(DarkGreyModelError): pass
 
 
 class DarkGreyModel(ABC):
@@ -71,8 +76,9 @@ class DarkGreyModel(ABC):
         '''    
 
         if self.result is None and refit:
-            raise ValueError("Model has no result to be used with refit. Call fit with refit=False"
-                             " at least once before a refit")
+            raise ModelNotFitError(
+                "Model has no result to be used with refit. Call fit with refit=False"
+                " at least once before a refit")
         
         # we are passing X, y to minimise as kwargs 
         self.result = minimize(obj_func or self.def_obj_func, 
@@ -84,11 +90,22 @@ class DarkGreyModel(ABC):
 
     def predict(self, X):
         '''
+        Generates a prediction based on the result parameters and X.
+
+        Parameters
+        ----------
+        X : dict
+            A dictionary of input values
+
+        Returns
+        -------
+        The results of the model
         '''
 
         if self.result is None:
-            raise ValueError("Model has no result to be used with predict. Call fit with refit=False"
-                             " at least once before predict")
+            raise ModelNotFitError(
+                "Model has no result to be used with predict. Call fit with refit=False"
+                " at least once before predict")
 
         return self.model(self.result.params, X)
     
