@@ -3,7 +3,9 @@ from numpy.testing import assert_array_equal
 
 import unittest 
 
-from darkgreybox.model import DarkGreyModel, TiTh, TiTeTh, TiTeThRia
+from darkgreybox.model import (DarkGreyModel, 
+                               TiTh, TiTeTh, TiTeThRia, 
+                               ModelNotFitError)
 
 
 class DGMTest(DarkGreyModel):
@@ -97,7 +99,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'R': {'value': 0.01}}
         X = {'Z': np.array([10, 20])}
         
-        with self.assertRaisesRegex(ValueError, expected_regex="Model has no result to be used with refit."):
+        with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with refit."):
              DGMTest(params=params, rec_duration=1) \
                 .fit(X=X, y=y, method='nelder', refit=True)
 
@@ -121,7 +123,7 @@ class DarkGreyModelTest(unittest.TestCase):
         params = {'Y0': {'value': 10},
                   'R': {'value': 0.01}}
         
-        with self.assertRaisesRegex(ValueError, expected_regex="Model has no result to be used with predict."):
+        with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with predict."):
             DGMTest(params=params, rec_duration=1) \
                 .predict({'Z': np.array([10, 20, 30])})
 
