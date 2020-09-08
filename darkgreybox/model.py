@@ -3,7 +3,9 @@ from abc import ABC
 from lmfit import minimize, Parameters
 
 
-#TODO: allow different start conditions in predict
+# TODO: allow different start conditions in predict
+# TODO: check docstrings (examples)
+
 
 
 class DarkGreyModelError(ValueError): pass
@@ -113,7 +115,7 @@ class DarkGreyModel(ABC):
 
         return self
 
-    def predict(self, X):
+    def predict(self, X, params=None):
         '''
         Generates a prediction based on the result parameters and X.
 
@@ -127,12 +129,12 @@ class DarkGreyModel(ABC):
         The results of the model
         '''
 
-        if self.result is None:
+        if (self.result is None) and params is None:
             raise ModelNotFitError(
                 "Model has no result to be used with predict. Call fit with refit=False"
                 " at least once before predict")
 
-        return self.model(self.result.params, X)
+        return self.model(self.result.params if params is None else params, X)
     
     def model(self, params, X):
         '''
