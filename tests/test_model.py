@@ -4,7 +4,7 @@ from numpy.testing import assert_array_equal
 import unittest 
 
 from darkgreybox.model import (DarkGreyModel, 
-                               TiTh, TiTeTh, TiTeThRia, 
+                               Ti, TiTh, TiTeTh, TiTeThRia, 
                                ModelNotFitError,
                                DarkGreyModelResult)
 
@@ -127,6 +127,51 @@ class DarkGreyModelTest(unittest.TestCase):
         with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with predict."):
             DGMTest(params=params, rec_duration=1) \
                 .predict({'C': np.array([10, 20, 30])})
+
+
+class TiTest(unittest.TestCase):
+
+    def test_model(self):
+
+        params = {
+            'Ti0': {'value': 10},
+            'Ria': {'value': 4},
+            'Ci': {'value': 0.25},
+        }
+
+        X = {
+            'Ta': np.array([10, 10, 10]),
+            'Ph': np.array([10, 0, 0]),
+        }
+        
+        m = Ti(params=params, rec_duration=1)
+        actual_result = m.model(m.params, X)
+
+        assert_array_equal(np.array([10, 50, 10]), actual_result.Ti)
+        assert_array_equal(actual_result.Z, actual_result.Ti)
+        
+    def test_fit(self):
+
+        y = np.array([10, 10, 20])
+
+        params = {
+            'Ti0': {'value': 10},
+            'Ria': {'value': 1},
+            'Ci': {'value': 1},
+        }
+
+        X = {
+            'Ta': np.array([10, 10, 10]),
+            'Ph': np.array([0, 10, 0]),
+        }
+        
+        m = Ti(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder')
+
+        for k, v in params.items():
+            self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
+
+        assert_array_equal(y, m.model(m.result.params, X).Z)
 
 
 class TiThTest(unittest.TestCase):
