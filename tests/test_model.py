@@ -5,7 +5,6 @@ import unittest
 
 from darkgreybox.model import (DarkGreyModel, 
                                Ti, TiTh, TiTeTh, TiTeThRia, 
-                               ModelNotFitError,
                                DarkGreyModelResult)
 
 
@@ -64,6 +63,19 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
 
+    def test_fit_ic_params(self):
+
+        y = np.array([1, 2])
+        params = {'A0': {'value': 10, 'vary': False},
+                  'B': {'value': 0.01, 'vary': True}}
+        X = {'C': np.array([10, 20])}
+        ic_params = {'A0': 15}
+        
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
+
+        self.assertAlmostEqual(15, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
+
     def test_fit_custom_obj_func(self):
 
         def obj_func(params, *args, **kwargs):
@@ -78,31 +90,6 @@ class DarkGreyModelTest(unittest.TestCase):
 
         self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
-
-    def test_fit_refit(self):
-
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
-        X = {'C': np.array([10, 20])}
-        
-        m = DGMTest(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder') \
-                .fit(X=X, y=y, method='nelder', refit=True)
-
-        self.assertAlmostEqual(1, m.result.params['A0'].value, places=3)
-        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
-
-    def test_fit_refit_raises_exception(self):
-
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
-        X = {'C': np.array([10, 20])}
-        
-        with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with refit."):
-             DGMTest(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder', refit=True)
 
     def test_predict(self):
 
@@ -119,14 +106,21 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(2, actual_result.Z[1], places=3)
         self.assertAlmostEqual(3, actual_result.Z[2], places=3)
 
-    def test_predict_raises_exception(self):
+    def test_predict_ic_params(self):
 
+        y = np.array([1, 2])
         params = {'A0': {'value': 10},
                   'B': {'value': 0.01}}
+        X = {'C': np.array([10, 20])}
+        ic_params = {'A0': 15}
         
-        with self.assertRaisesRegex(ModelNotFitError, expected_regex="Model has no result to be used with predict."):
-            DGMTest(params=params, rec_duration=1) \
-                .predict({'C': np.array([10, 20, 30])})
+        actual_result = DGMTest(params=params, rec_duration=1) \
+                            .fit(X=X, y=y, method='nelder') \
+                            .predict({'C': np.array([10, 20, 30])}, ic_params=ic_params)
+
+        self.assertAlmostEqual(15, actual_result.Z[0], places=3)
+        self.assertAlmostEqual(2, actual_result.Z[1], places=3)
+        self.assertAlmostEqual(3, actual_result.Z[2], places=3)
 
 
 class TiTest(unittest.TestCase):
