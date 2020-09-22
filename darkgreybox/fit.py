@@ -2,9 +2,25 @@ import numpy as np
 import pandas as pd
 import copy
 from timeit import default_timer as timer
+from joblib import Parallel, delayed
 
 
-def train_model(base_model, X_train, y_train, method, error_metric):
+def train_models(models, X_train, y_train, error_metric,
+                 splits=None, method='nelder', n_jobs=-1, verbose=10):
+
+    if n_jobs != 1:
+        with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
+            df = pd.concat(p(delayed(train_model)(model, X_train.loc[idx], y_train.loc[idx], error_metric, method)
+                             for _, idx in splits or [(None, X_train.index)] for model in models), ignore_index=True)
+
+    else:
+        df = pd.concat([train_model(model, X_train.loc[idx], y_train.loc[idx], error_metric, method)
+                         for _, idx in splits or [(None, X_train.index)] for model in models], ignore_index=True)
+
+    return df
+
+
+def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
 
     start = timer()
     model = copy.deepcopy(base_model)

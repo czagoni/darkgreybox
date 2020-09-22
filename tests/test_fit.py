@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
-from numpy.testing import assert_array_equal
 from pandas.testing import assert_frame_equal
 
 import unittest 
 from unittest.mock import MagicMock, patch
 
 from darkgreybox.fit import (get_ic_params,
-                             train_model)
+                             train_model,
+                             train_models)
 
 
 class FitTest(unittest.TestCase):
@@ -23,6 +23,70 @@ class FitTest(unittest.TestCase):
 
         self.y_train = pd.Series([100, 110])
         self.Z_train = np.array([120, 130])
+
+    def mock_train_model_side_effect(self, base_model, X_train, y_train, error_metric, method):
+        return pd.DataFrame({
+            'start_date': [X_train.index[0]],
+            'end_date': [X_train.index[-1]],
+            'model': [base_model],
+            'model_result': ['model_result'],
+            'time': [0.0],
+            'method': [method],
+            'error': [0.0]
+        })
+
+    @patch('darkgreybox.fit.train_model')
+    def test_train_models_not_parallel_splits_none(self, mock_train_model):
+
+        mock_train_model.side_effect = self.mock_train_model_side_effect
+
+        models = [MagicMock(), MagicMock()]
+        error_metric = MagicMock()
+
+        expected_df = pd.DataFrame({
+            'start_date': [self.X_train.index[0]] * 2,
+            'end_date': [self.X_train.index[-1]] * 2,
+            'model': models,
+            'model_result': ['model_result'] * 2,
+            'time': [0.0] * 2,
+            'method': ['nelder'] * 2,
+            'error': [0.0] * 2        
+        })
+
+        actual_df = train_models(models, self.X_train, self.y_train, error_metric=error_metric,
+                                 splits=None, method='nelder', n_jobs=1, verbose=10)
+
+        assert_frame_equal(expected_df, actual_df)
+
+    @patch('darkgreybox.fit.train_model')
+    def test_train_models_not_parallel(self, mock_train_model):
+
+        mock_train_model.side_effect = self.mock_train_model_side_effect
+
+        models = [MagicMock()]
+        error_metric = MagicMock()
+
+        splits = [(None, [0]), (None, [1])]
+
+        expected_df = pd.DataFrame({
+            'start_date': [self.X_train.index[0], self.X_train.index[1]],
+            'end_date': [self.X_train.index[0], self.X_train.index[1]],
+            'model': models * 2,
+            'model_result': ['model_result'] * 2,
+            'time': [0.0] * 2,
+            'method': ['nelder'] * 2,
+            'error': [0.0] * 2        
+        })
+
+        actual_df = train_models(models, self.X_train, self.y_train, error_metric=error_metric,
+                                 splits=splits, method='nelder', n_jobs=1, verbose=10)
+
+        assert_frame_equal(expected_df, actual_df)
+
+    @patch('darkgreybox.fit.train_model')
+    def test_train_models_parallel(self, mock_train_model):
+        # TODO
+        pass
 
     @patch('darkgreybox.fit.copy.deepcopy')
     @patch('darkgreybox.fit.timer')
