@@ -143,6 +143,14 @@ class DarkGreyModel(ABC):
         '''
         pass
 
+    def lock(self):
+        '''
+        Locks the parameters by setting `vary` to False
+        '''
+
+        for param in self.params.keys():
+            self.params[param].vary = False
+
     @staticmethod
     def def_obj_func(params, *args, **kwargs):
         '''
