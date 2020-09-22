@@ -10,12 +10,12 @@ def train_models(models, X_train, y_train, error_metric,
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
-            df = pd.concat(p(delayed(train_model)(model, X_train.loc[idx], y_train.loc[idx], error_metric, method)
-                             for _, idx in splits or [(None, X_train.index)] for model in models), ignore_index=True)
+            df = pd.concat(p(delayed(train_model)(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method)
+                             for _, idx in splits or [(None, range(len(X_train)))] for model in models), ignore_index=True)
 
     else:
-        df = pd.concat([train_model(model, X_train.loc[idx], y_train.loc[idx], error_metric, method)
-                         for _, idx in splits or [(None, X_train.index)] for model in models], ignore_index=True)
+        df = pd.concat([train_model(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method)
+                         for _, idx in splits or [(None, range(len(X_train)))] for model in models], ignore_index=True)
 
     return df
 
@@ -26,7 +26,7 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
     model = copy.deepcopy(base_model)
     
     try:
-        model = model.fit(X=X_train,
+        model = model.fit(X=X_train.to_dict(orient='list'),
                           y=y_train.values,
                           method=method,
                           ic_params=get_ic_params(model, X_train))

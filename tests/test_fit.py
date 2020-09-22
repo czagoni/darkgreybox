@@ -53,8 +53,14 @@ class FitTest(unittest.TestCase):
             'error': [0.0] * 2        
         })
 
-        actual_df = train_models(models, self.X_train, self.y_train, error_metric=error_metric,
-                                 splits=None, method='nelder', n_jobs=1, verbose=10)
+        actual_df = train_models(models=models,
+                                 X_train=self.X_train,
+                                 y_train=self.y_train,
+                                 error_metric=error_metric,
+                                 splits=None,
+                                 method='nelder',
+                                 n_jobs=1,
+                                 verbose=10)
 
         assert_frame_equal(expected_df, actual_df)
 
@@ -78,8 +84,14 @@ class FitTest(unittest.TestCase):
             'error': [0.0] * 2        
         })
 
-        actual_df = train_models(models, self.X_train, self.y_train, error_metric=error_metric,
-                                 splits=splits, method='nelder', n_jobs=1, verbose=10)
+        actual_df = train_models(models=models,
+                                 X_train=self.X_train,
+                                 y_train=self.y_train,
+                                 error_metric=error_metric,
+                                 splits=splits,
+                                 method='nelder',
+                                 n_jobs=1,
+                                 verbose=10)
 
         assert_frame_equal(expected_df, actual_df)
 
@@ -115,11 +127,17 @@ class FitTest(unittest.TestCase):
             'error': [0.95]
         })
 
-        actual_df = train_model(base_model=model, X_train=self.X_train,
-                                y_train=self.y_train, method="splendid", error_metric=error_metric)
+        actual_df = train_model(base_model=model,
+                                X_train=self.X_train,
+                                y_train=self.y_train,
+                                method="splendid",
+                                error_metric=error_metric)
 
-        model.fit.assert_called_with(
-            X=self.X_train, y=self.y_train.values, method="splendid", ic_params={'A0': 1})
+        model.fit.assert_called_with(X=self.X_train.to_dict(orient='list'),
+                                     y=self.y_train.values,
+                                     method="splendid",
+                                     ic_params={'A0': 1})
+
         model_fit.predict.assert_called_with(self.X_train)
         # error_metric.assert_called_with(self.y_train.values, self.Z_train)
 
@@ -147,11 +165,16 @@ class FitTest(unittest.TestCase):
             'error': [np.NaN]
         })
 
-        actual_df = train_model(base_model=model, X_train=self.X_train,
-                                y_train=self.y_train, method="splendid", error_metric=error_metric)
+        actual_df = train_model(base_model=model,
+                                X_train=self.X_train,
+                                y_train=self.y_train,
+                                method="splendid",
+                                error_metric=error_metric)
 
-        model.fit.assert_called_with(
-            X=self.X_train, y=self.y_train.values, method="splendid", ic_params={'A0': 1})
+        model.fit.assert_called_with(X=self.X_train.to_dict(orient='list'),
+                                     y=self.y_train.values,
+                                     method="splendid",
+                                     ic_params={'A0': 1})
 
         assert_frame_equal(expected_df, actual_df)
 
