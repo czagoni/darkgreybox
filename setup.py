@@ -48,7 +48,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'lmfit==1.0.1'
+        'lmfit==1.0.1',
+        'pandas>=1.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
