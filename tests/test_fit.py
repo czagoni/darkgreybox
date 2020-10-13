@@ -183,8 +183,6 @@ class FitTest(unittest.TestCase):
         model = MagicMock()
         model.params = {'A0': 0, 'B': 1, 'C0': 2, 'D': 3}
 
-
-
         expected = {'A0': 10, 'C0': 50}
         actual = get_ic_params(model, self.X_train)
 
