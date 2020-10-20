@@ -3,12 +3,6 @@ orbs:
 
 version: 2.1
 
-jobs:
-  lint:
-    executor: python/default
-    steps:
-      - run: pyflakes . 
-
 workflows:
   main:
     jobs:
@@ -17,4 +11,3 @@ workflows:
           pkg-manager: pip-dist
           pip-dependency-file: setup.py
           test-tool: pytest
-      - lint
