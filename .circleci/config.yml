@@ -4,9 +4,9 @@ jobs:
     steps:
       - checkout
       - python/install-packages:
+          pre-install-steps: pip install -e .[dev,test]
           pip-dependency-file: setup.py
           pkg-manager: pip-dist
-          args: '[dev,test]'
       - run:
           command: |
             pytest --version
