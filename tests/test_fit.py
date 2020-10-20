@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 
 from darkgreybox.fit import (get_ic_params,
                              train_model,
-                             train_models)
+                             train_models,
+                             reduce_results_df)
 
 
 class FitTest(unittest.TestCase):
@@ -175,6 +176,24 @@ class FitTest(unittest.TestCase):
                                      y=self.y_train.values,
                                      method="splendid",
                                      ic_params={'A0': 1})
+
+        assert_frame_equal(expected_df, actual_df)
+
+    def test_reduce_results_df(self):
+
+        df = pd.DataFrame(data={
+            'value': [0, 0, 0, 10, 20, 30, 40, 50],
+            'error': [np.nan, -np.inf, np.inf, 2.0000011, 2.0000012, 2.000002, 1, 3],
+            'time': [0, 0, 0, 2, 1, 3, 4, 5]
+        })
+
+        expected_df = pd.DataFrame(data={
+            'value': [40, 20, 30, 50],
+            'error': [1, 2.0000012, 2.000002, 3],
+            'time': [4, 1, 3, 5]            
+        })
+
+        actual_df = reduce_results_df(df)
 
         assert_frame_equal(expected_df, actual_df)
 

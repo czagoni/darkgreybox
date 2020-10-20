@@ -119,6 +119,16 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
                          'error': [error_metric(y_train.values, model_result.Z)]})
 
 
+def reduce_results_df(df, decimals=6):
+    return (df.replace([-np.inf, np.inf], np.nan)
+              .dropna()
+              .round({'error': decimals})
+              .sort_values('time')
+              .drop_duplicates(subset=['error'], keep='first')
+              .sort_values('error')
+              .reset_index(drop=True))
+
+
 def get_ic_params(model, X_train):
     """
     Returns the initial condition parameters of a model from the training data
@@ -137,7 +147,7 @@ def get_ic_params(model, X_train):
 
     # TODO: this is horrible - make this clearer and more robust
     ic_params = {}
-    for key in model.params.keys():
+    for key in model.params:
         if '0' in key:
             ic_params[key] = X_train.iloc[0][key]
 

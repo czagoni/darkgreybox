@@ -3,6 +3,8 @@ from abc import ABC
 from lmfit import minimize, Parameters
 from copy import deepcopy
 
+from darkgreybox import logger
+
 
 # TODO: allow different start conditions in predict
 # TODO: check docstrings (examples)
@@ -102,7 +104,11 @@ class DarkGreyModel(ABC):
         # overwrite initial conditions
         if ic_params is not None:
             for k, v in ic_params.items():
-                self.params[k].value = v      
+                if k in self.params:
+                    self.params[k].value = v      
+                else:
+                    logger.warning(f'Key `{k}` not found in initial conditions params')
+
 
         # we are passing X, y to minimise as kwargs 
         self.result = minimize(obj_func or self.def_obj_func, 

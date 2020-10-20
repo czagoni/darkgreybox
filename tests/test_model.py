@@ -76,6 +76,19 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(15, m.result.params['A0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
 
+    def test_fit_ic_params_missing_key(self):
+
+        y = np.array([1, 2])
+        params = {'A0': {'value': 10, 'vary': False},
+                  'B': {'value': 0.01, 'vary': True}}
+        X = {'C': np.array([10, 20])}
+        ic_params = {'A0': 15, 'A10': 150}
+        
+        m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
+
+        self.assertAlmostEqual(15, m.result.params['A0'].value, places=3)
+        self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
+
     def test_fit_custom_obj_func(self):
 
         def obj_func(params, *args, **kwargs):

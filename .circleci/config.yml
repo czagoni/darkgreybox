@@ -1,7 +1,15 @@
+jobs:
+  lint:
+    executor: python/default
+    steps:
+      - run: pyflakes .
+
 orbs:
   python: circleci/python@1.2.0
-version: 2.1
-workflows:
+
+  version: 2.1
+
+  workflows:
   main:
     jobs:
       - python/test:
@@ -9,3 +17,4 @@ workflows:
           pkg-manager: pip-dist
           pip-dependency-file: setup.py
           test-tool: pytest
+      - lint
