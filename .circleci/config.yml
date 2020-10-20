@@ -7,4 +7,5 @@ workflows:
       - python/test:
           args: '.[dev,test]'
           pkg-manager: pip-dist
+          pip-dependency-file: setup.py
           test-tool: pytest
