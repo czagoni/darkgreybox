@@ -8,4 +8,3 @@ workflows:
           args: '.[dev,test]'
           pkg-manager: pip-dist
           test-tool: pytest
-      - publish
