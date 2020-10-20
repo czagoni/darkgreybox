@@ -48,11 +48,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'numpy==1.19.1',
-        'scipy==1.5.2',
         'lmfit==1.0.1',
-        'pandas>=1.1',
-        'joblib>=0.16'
+        'pandas==1.1.2',
+        'joblib==0.16.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -61,7 +59,7 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'dev': [
-            'wheel>=0.32,<0.33'
+            'wheel==0.32.3'
         ],
         'test': [
             'pyflakes==2.1.1',

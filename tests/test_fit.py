@@ -11,6 +11,7 @@ from darkgreybox.fit import (get_ic_params,
                              train_models,
                              predict_model,
                              predict_models,
+                             wrapper,
                              reduce_results_df)
 
 
@@ -37,6 +38,128 @@ class FitTest(unittest.TestCase):
 
         self.y_test = pd.Series([100, 110])
         self.Z_test = np.array([120, 130])
+
+    @patch('darkgreybox.fit.reduce_results_df')
+    @patch('darkgreybox.fit.predict_models')
+    @patch('darkgreybox.fit.train_models')
+    def test_wrapper(self, mock_train_models, mock_predict_models, mock_reduce_results_df):
+
+        models = [MagicMock()]
+        train_model_results = [MagicMock()]
+        test_model_results = [MagicMock()]
+        train_time = [1.0]
+        test_time = [0.0]
+        train_error = [0.9]
+        test_error = [0.8]
+        ic_params_map = {'param': 'value'}
+        error_metric = MagicMock()
+        prefit_splits = MagicMock()
+
+        train_df = pd.DataFrame({
+            'model': models,
+            'model_result': train_model_results,
+            'start': self.X_train.index[0],
+            'end': self.X_train.index[-1],
+            'time': train_time,
+            'error': train_error
+        })
+        mock_train_models.return_value = train_df
+
+        test_df = pd.DataFrame({
+            'model': models,
+            'model_result': test_model_results,
+            'start': self.X_test.index[0],
+            'end': self.X_test.index[-1],
+            'time': test_time,
+            'error': test_error
+        })
+        mock_predict_models.return_value = test_df
+
+        columns = pd.MultiIndex.from_tuples([('train', 'model'),
+                                             ('train', 'model_result'),
+                                             ('train', 'start'),
+                                             ('train', 'end'),
+                                             ('train', 'time'),
+                                             ('train', 'error'),
+                                             ('test', 'model'),
+                                             ('test', 'model_result'),
+                                             ('test', 'start'),
+                                             ('test', 'end'),
+                                             ('test', 'time'),
+                                             ('test', 'error')])
+
+        expected_df = pd.DataFrame(columns=columns, 
+                                   data=[[models[0], train_model_results[0], self.X_train.index[0],
+                                          self.X_train.index[-1], train_time[0], train_error[0],
+                                          models[0], test_model_results[0], self.X_test.index[0],
+                                          self.X_test.index[-1], test_time[0], test_error[0]]])
+
+        actual_df = wrapper(models=models,
+                            X_train=self.X_train,
+                            y_train=self.y_train,
+                            X_test=self.X_test,
+                            y_test=self.y_test,
+                            ic_params_map=ic_params_map,
+                            error_metric=error_metric,
+                            prefit_splits=prefit_splits,
+                            prefit_filter=None,
+                            reduce_train_results=False,
+                            method='nelder',
+                            n_jobs=-1,
+                            verbose=10)
+
+        mock_train_calls = mock_train_models.call_args_list
+
+        mock_train_calls[0] == ({'models': models,
+                                 'X_train': self.X_train,
+                                 'y_train': self.y_train,
+                                 'splits': prefit_splits,
+                                 'error_metric': error_metric,
+                                 'method': 'nelder',
+                                 'n_jobs': -1,
+                                 'verbose': 10})
+
+        mock_train_calls[1] == ({'models': models,
+                                 'X_train': self.X_train,
+                                 'y_train': self.y_train,
+                                 'splits': None,
+                                 'error_metric': error_metric,
+                                 'method': 'nelder',
+                                 'n_jobs': -1,
+                                 'verbose': 10})
+
+        mock_reduce_results_df.assert_not_called()
+
+        mock_predict_models.assert_called_with(models=models,
+                                          X_test=self.X_test,
+                                          y_test=self.y_test,
+                                          ic_params_map=ic_params_map,
+                                          error_metric=error_metric,
+                                          train_results=train_model_results,
+                                          n_jobs=-1,
+                                          verbose=10)
+
+        assert_frame_equal(expected_df, actual_df)
+
+        # test with reduce_train_results=True
+
+        mock_reduce_results_df.return_value = train_df
+
+        wrapper(models=models,
+                X_train=self.X_train,
+                y_train=self.y_train,
+                X_test=self.X_test,
+                y_test=self.y_test,
+                ic_params_map=ic_params_map,
+                error_metric=error_metric,
+                prefit_splits=prefit_splits,
+                prefit_filter=None,
+                reduce_train_results=True,
+                method='nelder',
+                n_jobs=-1,
+                verbose=10)
+
+        mock_reduce_results_df.assert_called_with(train_df)
 
     @patch('darkgreybox.fit.train_model')
     def test_train_models_not_parallel_splits_none(self, mock_train_model):
@@ -189,6 +312,7 @@ class FitTest(unittest.TestCase):
         models = [MagicMock()] * 2
         train_results = [MagicMock()] * 2
         error_metric = MagicMock()
+        ic_params_map = {}
 
         expected_df = pd.DataFrame({
             'start_date': [self.X_test.index[0], self.X_test.index[0]],
@@ -202,11 +326,14 @@ class FitTest(unittest.TestCase):
         actual_df = predict_models(models=models,
                                    X_test=self.X_test,
                                    y_test=self.y_test,
-                                   ic_params_map={},
+                                   ic_params_map=ic_params_map,
                                    error_metric=error_metric,
                                    train_results=train_results,
                                    n_jobs=1,
                                    verbose=10)
+
+        mock_predict_model.assert_called_with(models[0], self.X_test, self.y_test, 
+                                              ic_params_map, error_metric, train_results[0])
 
         assert_frame_equal(expected_df, actual_df, check_dtype=False)
 

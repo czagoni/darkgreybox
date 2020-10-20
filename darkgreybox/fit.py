@@ -6,6 +6,49 @@ from joblib import Parallel, delayed
 
 from darkgreybox.model import DarkGreyModel
 
+# TODO: add logging 
+
+def wrapper(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
+            prefit_splits=None, prefit_filter=None, reduce_train_results=True, 
+            method='nelder', n_jobs=-1, verbose=10):
+    """
+    TODO: add docstring
+    """
+
+    prefit_df = train_models(models=models,
+                             X_train=X_train,
+                             y_train=y_train,
+                             splits=prefit_splits,
+                             error_metric=error_metric,
+                             method=method,
+                             n_jobs=n_jobs,
+                             verbose=verbose)
+
+    #TODO: add prefit filter
+
+    train_df = train_models(models=prefit_df['model'].tolist(),
+                            X_train=X_train, 
+                            y_train=y_train, 
+                            splits=None, 
+                            error_metric=error_metric,
+                            method=method, 
+                            n_jobs=n_jobs,
+                            verbose=verbose)
+
+    if reduce_train_results:
+        train_df = reduce_results_df(train_df)
+
+    test_df = predict_models(models=train_df['model'].tolist(),
+                             X_test=X_test,
+                             y_test=y_test,
+                             ic_params_map=ic_params_map,
+                             error_metric=error_metric,
+                             train_results=train_df['model_result'].tolist(),
+                             n_jobs=n_jobs,
+                             verbose=verbose)
+
+    return pd.concat([train_df, test_df], keys= ['train', 'test',], axis=1)
+
 
 def train_models(models, X_train, y_train, error_metric,
                  splits=None, method='nelder', n_jobs=-1, verbose=10):
@@ -169,11 +212,11 @@ def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_re
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
-            df = pd.concat(p(delayed(predict_model)(model, train_result, X_test, y_test, ic_params_map, error_metric)
+            df = pd.concat(p(delayed(predict_model)(model, X_test, y_test, ic_params_map, error_metric, train_result)
                              for model, train_result in zip(models, train_results)), ignore_index=True)
 
     else:
-        df = pd.concat([predict_model(model, train_result, X_test, y_test, ic_params_map, error_metric)
+        df = pd.concat([predict_model(model, X_test, y_test, ic_params_map, error_metric, train_result)
                         for model, train_result in zip(models, train_results)], ignore_index=True)
 
     return df
