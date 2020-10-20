@@ -1,23 +1,11 @@
-jobs:
-  build:
-    executor: python/default
-    steps:
-      - checkout
-      - python/install-packages:
-          pre-install-steps: 
-            - run: 
-              command: |
-                pip install -e .[dev,test]
-          pip-dependency-file: setup.py
-          pkg-manager: pip-dist
-      - run:
-          command: |
-            pytest --version
-          name: Test
 orbs:
   python: circleci/python@1.2.0
 version: 2.1
 workflows:
   main:
     jobs:
-      - build
+      - python/test:
+          args: '.[dev,test]'
+          pkg-manager: pip-dist
+          test-tool: pytest
+      - publish
