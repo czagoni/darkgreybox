@@ -7,7 +7,7 @@ jobs:
   lint:
     executor: python/default
     steps:
-      - run: pyflakes. 
+      - run: pyflakes . 
 
 workflows:
   main:
