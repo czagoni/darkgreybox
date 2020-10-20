@@ -48,6 +48,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'numpy==1.19.1',
+        'scipy==1.5.2',
         'lmfit==1.0.1',
         'pandas>=1.1',
         'joblib>=0.16'
