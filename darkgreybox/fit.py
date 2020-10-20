@@ -4,6 +4,8 @@ import copy
 from timeit import default_timer as timer
 from joblib import Parallel, delayed
 
+from darkgreybox.model import DarkGreyModel
+
 
 def train_models(models, X_train, y_train, error_metric,
                  splits=None, method='nelder', n_jobs=-1, verbose=10):
@@ -118,8 +120,130 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
                          'method': [method],
                          'error': [error_metric(y_train.values, model_result.Z)]})
 
+def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results=None,
+                   n_jobs=-1, verbose=10):
+    """
+    Generates the predictions for the `models` for the given `X_test` and `y_test` test data
+
+    Params:
+        models: list of `model.DarkGreyModel` objects
+            list of models to be used for the predictions 
+        X_test: `pandas.DataFrame`
+            A pandas DataFrame of the test input data X
+        y_test: `pandas.Series`
+            A pandas Series of the test input data y
+        ic_params_map: dict
+            A dictionary of mapping functions that return the initial condition parameters
+        error_metric: function
+            An error metric function that confirms to the `sklearn.metrics` interface
+        train_results: list of `model.DarkGreyModelResult`
+            The model results of the previously trained models (optional)
+        n_jobs: int
+            The number of parallel jobs to be run as described by `joblib.Parallel`
+        verbose: int
+            The degree of verbosity as described by `joblib.Parallel`
+
+    Returns:
+        `pandas.DataFrame` with a record for each model's predictions 
+
+    Example:
+    ~~~~
+    
+    from sklearn.metrics import mean_squared_error
+
+    from darkgreybox.fit import test_models
+
+
+    prefit_df = train_models(models=[trained_model_1, trained_model_2],
+                             X_test=X_test, 
+                             y_test=y_test, 
+                             ic_params_map={}
+                             error_metric=mean_squared_error,
+                             train_results=[trained_model_result_1, trained_model_result_2],
+                             n_jobs=-1, 
+                             verbose=10)
+    ~~~~
+    """
+
+    # TODO: if train_results is None calculate it
+
+    if n_jobs != 1:
+        with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
+            df = pd.concat(p(delayed(predict_model)(model, train_result, X_test, y_test, ic_params_map, error_metric)
+                             for model, train_result in zip(models, train_results)), ignore_index=True)
+
+    else:
+        df = pd.concat([predict_model(model, train_result, X_test, y_test, ic_params_map, error_metric)
+                        for model, train_result in zip(models, train_results)], ignore_index=True)
+
+    return df
+
+def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_result=None):
+    """
+    Calculates redictions  of `model` for the given `X_test` and `y_test` test data. 
+
+    Params:
+        model: `model.DarkGreyModel`
+            model used for the prediction
+        X_test: `pandas.DataFrame`
+            A pandas DataFrame of the test input data X
+        y_test: `pandas.Series`
+            A pandas Series of the test input data y
+        ic_params_map: dict
+            A dictionary of mapping functions that return the initial condition parameters
+        error_metric: function
+            An error metric function that confirms to the `sklearn.metrics` interface
+        train_result: `model.DarkGreyModelResult`
+            The model result of a previously trained model (optional)
+
+    Returns:
+        `pandas.DataFrame` with a single record for the fit model's predictions
+    """
+
+    # TODO: if train_result is None calculate it
+
+    start = timer()
+    
+    if isinstance(model, DarkGreyModel):
+
+        ic_params = map_ic_params(model, X_test, y_test, ic_params_map, train_result)
+                
+        model_result = model.predict(X=X_test.to_dict(orient='list'),
+                                     ic_params=ic_params)
+        
+        end = timer()
+        
+        return pd.DataFrame({'start_date': [X_test.index[0]],
+                             'end_date': [X_test.index[-1]],
+                             'model': [model],
+                             'model_result': [model_result],
+                             'time': [end - start],
+                             'error': [error_metric(y_test.values, model_result.Z)]
+                            })        
+    else:
+        end = timer()
+        return pd.DataFrame({'start_date': [X_test.index[0]],
+                             'end_date': [X_test.index[-1]],
+                             'model': [np.NaN],
+                             'model_result': [np.NaN],
+                             'time': [end - start],
+                             'error': [np.NaN]})
+
 
 def reduce_results_df(df, decimals=6):
+    """
+    Reduces `df` dataframe by removing nan and duplicate records
+
+    Params:
+        df: `pandas.DataFrame`
+            The dataframe to be reduced / cleaned
+        decimal: int
+            The number of decimal points for the float comparison when removing duplicates
+
+    Returns :
+        the reduced / cleaned `pandas.DataFrame`
+    """
+
     return (df.replace([-np.inf, np.inf], np.nan)
               .dropna()
               .round({'error': decimals})
@@ -127,6 +251,18 @@ def reduce_results_df(df, decimals=6):
               .drop_duplicates(subset=['error'], keep='first')
               .sort_values('error')
               .reset_index(drop=True))
+
+
+def map_ic_params(model, X_test, y_test, ic_params_map, train_result):
+    # TODO: docstrings
+
+        ic_params = {}
+
+        for key in ic_params_map:
+            if key in model.params:
+                ic_params[key] = ic_params_map[key](X_test, y_test, train_result)
+
+        return ic_params
 
 
 def get_ic_params(model, X_train):

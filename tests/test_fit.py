@@ -5,9 +5,12 @@ from pandas.testing import assert_frame_equal
 import unittest 
 from unittest.mock import MagicMock, patch
 
+from darkgreybox.model import DarkGreyModel
 from darkgreybox.fit import (get_ic_params,
                              train_model,
                              train_models,
+                             predict_model,
+                             predict_models,
                              reduce_results_df)
 
 
@@ -25,16 +28,15 @@ class FitTest(unittest.TestCase):
         self.y_train = pd.Series([100, 110])
         self.Z_train = np.array([120, 130])
 
-    def mock_train_model_side_effect(self, base_model, X_train, y_train, error_metric, method):
-        return pd.DataFrame({
-            'start_date': [X_train.index[0]],
-            'end_date': [X_train.index[-1]],
-            'model': [base_model],
-            'model_result': ['model_result'],
-            'time': [0.0],
-            'method': [method],
-            'error': [0.0]
+        self.X_test = pd.DataFrame({
+            'A0': [10, 20],
+            'B': [30, 40],
+            'C0': [50, 60],
+            'D': [70, 80]
         })
+
+        self.y_test = pd.Series([100, 110])
+        self.Z_test = np.array([120, 130])
 
     @patch('darkgreybox.fit.train_model')
     def test_train_models_not_parallel_splits_none(self, mock_train_model):
@@ -179,6 +181,102 @@ class FitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
+    @patch('darkgreybox.fit.predict_model')
+    def test_predict_models_not_parallel(self, mock_predict_model):
+
+        mock_predict_model.side_effect = self.mock_predict_model_side_effect
+
+        models = [MagicMock()] * 2
+        train_results = [MagicMock()] * 2
+        error_metric = MagicMock()
+
+        expected_df = pd.DataFrame({
+            'start_date': [self.X_test.index[0], self.X_test.index[0]],
+            'end_date': [self.X_test.index[-1], self.X_test.index[-1]],
+            'model': models,
+            'model_result': ['model_result'] * 2,
+            'time': [0.0] * 2,
+            'error': [0.0] * 2        
+        })
+
+        actual_df = predict_models(models=models,
+                                   X_test=self.X_test,
+                                   y_test=self.y_test,
+                                   ic_params_map={},
+                                   error_metric=error_metric,
+                                   train_results=train_results,
+                                   n_jobs=1,
+                                   verbose=10)
+
+        assert_frame_equal(expected_df, actual_df, check_dtype=False)
+
+    @patch('darkgreybox.fit.predict_model')
+    def test_predict_models_parallel(self, mock_predict_model):
+        # TODO
+        pass
+
+    @patch('darkgreybox.fit.map_ic_params')
+    @patch('darkgreybox.fit.timer')
+    @patch('darkgreybox.model.DarkGreyModel.predict')
+    def test_predict_model(self, mock_predict, mock_timer, mock_map_ic_params):
+
+        model = DarkGreyModel({}, 1)
+        model_result = MagicMock()
+        train_result = MagicMock()
+        mock_predict.return_value = model_result
+        mock_timer.return_value = 1.0
+        mock_map_ic_params.return_value = {'A0': 1}
+        error_metric = MagicMock()
+        error_metric.return_value = 0.95
+
+        expected_df = pd.DataFrame({
+            'start_date': [self.X_test.index[0]],
+            'end_date': [self.X_test.index[-1]],
+            'model': [model],
+            'model_result': [model_result],
+            'time': [0.0],
+            'error': [0.95]
+        })
+
+        actual_df = predict_model(model=model,
+                                  X_test=self.X_test,
+                                  y_test=self.y_test,
+                                  ic_params_map={'B': 1},
+                                  error_metric=error_metric,
+                                  train_result=train_result)
+
+        mock_map_ic_params.assert_called_with(model, self.X_test, self.y_test, {'B': 1}, train_result)
+
+        mock_predict.assert_called_with(X=self.X_test.to_dict(orient='list'),
+                                        ic_params={'A0': 1})
+
+        assert_frame_equal(expected_df, actual_df)
+
+    @patch('darkgreybox.fit.timer')
+    def test_predict_model_not_model_instance(self, mock_timer):
+
+        model = 1.0
+        mock_timer.return_value = 1.0
+        error_metric = MagicMock()
+
+        expected_df = pd.DataFrame({
+            'start_date': [self.X_test.index[0]],
+            'end_date': [self.X_test.index[-1]],
+            'model': [np.nan],
+            'model_result': [np.nan],
+            'time': [0.0],
+            'error': [np.nan]
+        })
+
+        actual_df = predict_model(model=model,
+                                  X_test=self.X_test,
+                                  y_test=self.y_test,
+                                  ic_params_map={},
+                                  error_metric=error_metric,
+                                  train_result=None)
+
+        assert_frame_equal(expected_df, actual_df)
+
     def test_reduce_results_df(self):
 
         df = pd.DataFrame(data={
@@ -207,3 +305,23 @@ class FitTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def mock_train_model_side_effect(self, base_model, X_train, y_train, error_metric, method):
+        return pd.DataFrame({
+            'start_date': [X_train.index[0]],
+            'end_date': [X_train.index[-1]],
+            'model': [base_model],
+            'model_result': ['model_result'],
+            'time': [0.0],
+            'method': [method],
+            'error': [0.0]
+        })
+
+    def mock_predict_model_side_effect(self, model, X_test, y_test, ic_params_map, error_metric, train_result):
+        return pd.DataFrame({
+            'start_date': [X_test.index[0]],
+            'end_date': [X_test.index[-1]],
+            'model': [model],
+            'model_result': ['model_result'],
+            'time': [0.0],
+            'error': [0.0]
+        })
