@@ -10,11 +10,11 @@ jobs:
       - run: pyflakes. 
 
 workflows:
-main:
-  jobs:
-    - python/test:
-        args: '.[dev,test]'
-        pkg-manager: pip-dist
-        pip-dependency-file: setup.py
-        test-tool: pytest
-    - lint
+  main:
+    jobs:
+      - python/test:
+          args: '.[dev,test]'
+          pkg-manager: pip-dist
+          pip-dependency-file: setup.py
+          test-tool: pytest
+      - lint
