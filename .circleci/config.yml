@@ -4,7 +4,8 @@ jobs:
     steps:
       - checkout
       - python/install-packages:
-          pre-install-steps: pip install -e .[dev,test]
+          pre-install-steps: 
+            steps: pip install -e .[dev,test]
           pip-dependency-file: setup.py
           pkg-manager: pip-dist
       - run:
