@@ -4,6 +4,7 @@ jobs:
     steps:
       - checkout
       - python/install-packages:
+          pip-dependency-file: setup.py
           pkg-manager: pip-dist
           args: '[dev,test]'
       - run:
