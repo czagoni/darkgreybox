@@ -5,6 +5,7 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip-dist
+          args: '[dev,test]'
       - run:
           command: |
             pytest --version
