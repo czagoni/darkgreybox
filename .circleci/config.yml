@@ -5,10 +5,6 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip-dist
-      - python/install-packages:
-          args: pytest
-          pkg-manager: pip-dist
-          pypi-cache: false
       - run:
           command: |
             pytest --version
