@@ -8,9 +8,10 @@ from darkgreybox.model import DarkGreyModel
 
 # TODO: add logging 
 
-def wrapper(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
-            prefit_splits=None, prefit_filter=None, reduce_train_results=True, 
-            method='nelder', n_jobs=-1, verbose=10):
+
+def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
+                prefit_splits=None, prefit_filter=None, reduce_train_results=True,
+                method='nelder', n_jobs=-1, verbose=10):
     """
     TODO: add docstring
     """
@@ -24,7 +25,8 @@ def wrapper(models, X_train, y_train, X_test, y_test, ic_params_map, error_metri
                              n_jobs=n_jobs,
                              verbose=verbose)
 
-    #TODO: add prefit filter
+    if prefit_filter is not None:
+        prefit_df = apply_prefit_filter(prefit_df, prefit_filter)
 
     train_df = train_models(models=prefit_df['model'].tolist(),
                             X_train=X_train, 
@@ -47,7 +49,7 @@ def wrapper(models, X_train, y_train, X_test, y_test, ic_params_map, error_metri
                              n_jobs=n_jobs,
                              verbose=verbose)
 
-    return pd.concat([train_df, test_df], keys= ['train', 'test',], axis=1)
+    return pd.concat([train_df, test_df], keys=['train', 'test',], axis=1)
 
 
 def train_models(models, X_train, y_train, error_metric,
@@ -163,7 +165,7 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
                          'method': [method],
                          'error': [error_metric(y_train.values, model_result.Z)]})
 
-def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results=None,
+def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results,
                    n_jobs=-1, verbose=10):
     """
     Generates the predictions for the `models` for the given `X_test` and `y_test` test data
@@ -180,7 +182,7 @@ def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_re
         error_metric: function
             An error metric function that confirms to the `sklearn.metrics` interface
         train_results: list of `model.DarkGreyModelResult`
-            The model results of the previously trained models (optional)
+            The model results of the previously trained models 
         n_jobs: int
             The number of parallel jobs to be run as described by `joblib.Parallel`
         verbose: int
@@ -208,8 +210,6 @@ def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_re
     ~~~~
     """
 
-    # TODO: if train_results is None calculate it
-
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
             df = pd.concat(p(delayed(predict_model)(model, X_test, y_test, ic_params_map, error_metric, train_result)
@@ -221,7 +221,7 @@ def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_re
 
     return df
 
-def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_result=None):
+def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_result):
     """
     Calculates redictions  of `model` for the given `X_test` and `y_test` test data. 
 
@@ -237,13 +237,11 @@ def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_resu
         error_metric: function
             An error metric function that confirms to the `sklearn.metrics` interface
         train_result: `model.DarkGreyModelResult`
-            The model result of a previously trained model (optional)
+            The model result of a previously trained model 
 
     Returns:
         `pandas.DataFrame` with a single record for the fit model's predictions
     """
-
-    # TODO: if train_result is None calculate it
 
     start = timer()
     
@@ -294,6 +292,10 @@ def reduce_results_df(df, decimals=6):
               .drop_duplicates(subset=['error'], keep='first')
               .sort_values('error')
               .reset_index(drop=True))
+
+
+def apply_prefit_filter(prefit_df, prefit_filter):
+    return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
 
 
 def map_ic_params(model, X_test, y_test, ic_params_map, train_result):

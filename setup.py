@@ -14,7 +14,7 @@ setup(
     long_description="Library for modelling...",
 
     # The project's main homepage.
-    url='https://github.com/greenpeace/GPUK_corvin',
+    url='https://github.com/czagoni/darkgreybox',
 
     # Author details
     author='csaba zagoni',
@@ -26,7 +26,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Production/Stable',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
