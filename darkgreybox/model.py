@@ -153,6 +153,8 @@ class DarkGreyModel(ABC):
         for param in self.params.keys():
             self.params[param].vary = False
 
+        return self
+
     @staticmethod
     def def_obj_func(params, *args, **kwargs):
         '''

@@ -289,7 +289,7 @@ def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_resu
     
     if isinstance(model, DarkGreyModel):
 
-        ic_params = map_ic_params(model, X_test, y_test, ic_params_map, train_result)
+        ic_params = map_ic_params(ic_params_map, model, X_test, y_test, train_result)
                 
         model_result = model.predict(X=X_test.to_dict(orient='list'),
                                      ic_params=ic_params)
@@ -343,19 +343,19 @@ def apply_prefit_filter(prefit_df, prefit_filter):
     return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
 
 
-def map_ic_params(model, X_test, y_test, ic_params_map, train_result):
+def map_ic_params(ic_params_map, model, X_test, y_test, train_result):
     """
     Maps the test initial condition parameters according to `ic_params_map`
 
     Parameters:
+        ic_params_map: dict
+            A dictionary of mapping functions that return the initial condition parameters       
         model: `model.DarkGreyModel`
             model used for the prediction
         X_test: `pandas.DataFrame`
             A pandas DataFrame of the test input data X
         y_test: `pandas.Series`
             A pandas Series of the test input data y
-        ic_params_map: dict
-            A dictionary of mapping functions that return the initial condition parameters
         train_results: `model.DarkGreyModelResult`
             model result object for training data
 

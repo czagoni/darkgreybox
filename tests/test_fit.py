@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 from darkgreybox.model import DarkGreyModel
 from darkgreybox.fit import (get_ic_params,
+                             map_ic_params,
                              train_model,
                              train_models,
                              predict_model,
@@ -420,7 +421,7 @@ class FitTest(unittest.TestCase):
                                   error_metric=error_metric,
                                   train_result=train_result)
 
-        mock_map_ic_params.assert_called_with(model, self.X_test, self.y_test, {'B': 1}, train_result)
+        mock_map_ic_params.assert_called_with({'B': 1}, model, self.X_test, self.y_test, train_result)
 
         mock_predict.assert_called_with(X=self.X_test.to_dict(orient='list'),
                                         ic_params={'A0': 1})
@@ -489,6 +490,25 @@ class FitTest(unittest.TestCase):
         actual_df = apply_prefit_filter(df, prefit_filter)
 
         assert_frame_equal(expected_df, actual_df)       
+
+    def test_map_ic_params(self):
+
+        train_result = [57]
+
+        ic_params_map = {
+            'A0': lambda X_test, y_test, train_result: y_test.iloc[0],
+            'B0': lambda X_test, y_test, train_result: y_test.iloc[0],
+            'C0': lambda X_test, y_test, train_result: X_test['C0'].iloc[0],
+            'D': lambda X_test, y_test, train_result: train_result[0],
+        }
+
+        model = MagicMock()
+        model.params = {'A0': 0, 'B': 1, 'C0': 2, 'D': 3}
+
+        expected = {'A0': 100, 'C0': 50, 'D': 57}
+        actual = map_ic_params( ic_params_map, model, self.X_test, self.y_test, train_result)
+
+        self.assertEqual(expected, actual)     
 
     def test_get_ic_params(self):
 

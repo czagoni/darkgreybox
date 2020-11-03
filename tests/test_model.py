@@ -4,7 +4,7 @@ from numpy.testing import assert_array_equal
 import unittest 
 
 from darkgreybox.model import (DarkGreyModel, 
-                               Ti, TiTh, TiTeTh, TiTeThRia, 
+                               Ti, TiTe, TiTh, TiTeTh, TiTeThRia, 
                                DarkGreyModelResult)
 
 
@@ -135,6 +135,16 @@ class DarkGreyModelTest(unittest.TestCase):
         self.assertAlmostEqual(2, actual_result.Z[1], places=3)
         self.assertAlmostEqual(3, actual_result.Z[2], places=3)
 
+    def test_lock(self):
+
+        params = {'A0': {'value': 10},
+                  'B': {'value': 0.01}}
+        
+        m = DGMTest(params=params, rec_duration=1).lock()
+
+        for param in m.params.keys():
+            self.assertFalse(m.params[param].vary)
+
 
 class TiTest(unittest.TestCase):
 
@@ -225,6 +235,109 @@ class TiThTest(unittest.TestCase):
         }
         
         m = TiTh(params=params, rec_duration=1) \
+                .fit(X=X, y=y, method='nelder')
+
+        for k, v in params.items():
+            self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
+
+        assert_array_equal(y, m.model(m.result.params, X).Z)
+
+
+# class TiTeTest(unittest.TestCase):
+
+#     def test_model(self):
+
+#         params = {
+#             'Ti0': {'value': 10},
+#             'Te0': {'value': 20},
+#             'Rie': {'value': 2},
+#             'Rea': {'value': 4},
+#             'Ci': {'value': 0.25},
+#             'Ce': {'value': 0.5}
+#         }
+
+#         X = {
+#             'Ta': np.array([10, 10, 10]),
+#             'Ph': np.array([10, 0, 0]),
+#         }
+        
+#         m = TiTe(params=params, rec_duration=1)
+#         actual_result = m.model(m.params, X)
+
+#         assert_array_equal(np.array([10, 30, 10]), actual_result.Ti)
+#         assert_array_equal(np.array([20, 30, 30]), actual_result.Te)
+#         assert_array_equal(actual_result.Z, actual_result.Ti)
+        
+#     def test_fit(self):
+
+#         y = np.array([10, 10, 20])
+
+#         params = {
+#             'Ti0': {'value': 10},
+#             'Te0': {'value': 10},
+#             'Rie': {'value': 1},
+#             'Rea': {'value': 1},
+#             'Ci': {'value': 1},
+#             'Ce': {'value': 1}
+#         }
+
+#         X = {
+#             'Ta': np.array([10, 10, 10]),
+#             'Ph': np.array([10, 0, 0]),
+#         }
+        
+#         m = TiTe(params=params, rec_duration=1) \
+#                 .fit(X=X, y=y, method='nelder')
+
+#         for k, v in params.items():
+#             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
+
+#         assert_array_equal(y, m.model(m.result.params, X).Z)
+
+
+class TiTeTest(unittest.TestCase):
+
+    def test_model(self):
+
+        params = {
+            'Ti0': {'value': 20},
+            'Te0': {'value': 10},
+            'Rie': {'value': 1},
+            'Rea': {'value': 4},
+            'Ci': {'value': 2},
+            'Ce': {'value': 1},
+        }
+
+        X = {
+            'Ta': np.array([10, 10, 10]),
+            'Ph': np.array([10, 0, 0]),
+        }
+        
+        m = TiTe(params=params, rec_duration=1)
+        actual_result = m.model(m.params, X)
+
+        assert_array_equal(np.array([20, 20, 20]), actual_result.Ti)
+        assert_array_equal(np.array([10, 20, 17.5]), actual_result.Te)
+
+    def test_fit(self):
+
+        y = np.array([20, 20, 20])
+
+        params = {
+            'Ti0': {'value': 20},
+            'Te0': {'value': 10},
+            'Rie': {'value': 1},
+            'Rea': {'value': 4},
+            'Ci': {'value': 2},
+            'Ce': {'value': 1},
+        }
+
+        X = {
+            'Ta': np.array([10, 10, 10]),
+            'Ph': np.array([10, 0, 0]),
+        }
+        
+        m = TiTe(params=params, rec_duration=1) \
                 .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
