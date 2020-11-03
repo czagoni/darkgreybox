@@ -6,10 +6,6 @@ from copy import deepcopy
 from darkgreybox import logger
 
 
-# TODO: allow different start conditions in predict
-# TODO: check docstrings (examples)
-
-
 class DarkGreyModelError(ValueError): pass
 
 

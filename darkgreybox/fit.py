@@ -4,16 +4,52 @@ import copy
 from timeit import default_timer as timer
 from joblib import Parallel, delayed
 
+from darkgreybox import logger
 from darkgreybox.model import DarkGreyModel
-
-# TODO: add logging 
 
 
 def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
                 prefit_splits=None, prefit_filter=None, reduce_train_results=True,
                 method='nelder', n_jobs=-1, verbose=10):
     """
-    TODO: add docstring
+    Given a list of `models` applies a prefit according to `prefit_splits`, then fits them 
+    to the training data and evaluates them on the test data. 
+
+    Params:
+        models: list of `model.DarkGreyModel` objects
+            list of models to be trained
+        X_train: `pandas.DataFrame`
+            A pandas DataFrame of the training input data X
+        y_train: `pandas.Series`
+            A pandas Series of the training input data y
+        X_test: `pandas.DataFrame`
+            A pandas DataFrame of the test input data X
+        y_test: `pandas.Series`
+            A pandas Series of the test input data y
+        ic_params_map: dict
+            A dictionary of mapping functions that return the 
+            initial condition parameters for the test set
+        error_metric: function
+            An error metric function that confirms to the `sklearn.metrics` interface
+        prefit_splits: list
+            A list of training data indices specifying sub-sections of `X_train` and `y_train` 
+            for the prefitting of models
+        prefit_filter: function
+            A function acting as a filter based on the 'error' values of the trained models
+        reduce_train_results: bool
+            If set to True, the training dataframe will be reduced / cleaned
+            by removing nan and duplicate records
+        method : str
+            Name of the fitting method to use. Valid values are described in:
+            `lmfit.minimize`
+        n_jobs: int
+            The number of parallel jobs to be run as described by `joblib.Parallel`
+        verbose: int
+            The degree of verbosity as described by `joblib.Parallel`
+
+    Returns:
+        `pandas.DataFrame` with a record for each model's potentially viable results
+
     """
 
     prefit_df = train_models(models=models,
@@ -101,6 +137,9 @@ def train_models(models, X_train, y_train, error_metric,
                              verbose=10)
     ~~~~
     """
+
+    num_models = len(models) * (len(splits) if splits is not None else 1)
+    logger.info(f'Training {num_models} models...')
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
@@ -210,6 +249,9 @@ def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_re
     ~~~~
     """
 
+    num_models = len(models)
+    logger.info(f'Generating predictions for {num_models} models...')
+
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
             df = pd.concat(p(delayed(predict_model)(model, X_test, y_test, ic_params_map, error_metric, train_result)
@@ -295,19 +337,51 @@ def reduce_results_df(df, decimals=6):
 
 
 def apply_prefit_filter(prefit_df, prefit_filter):
+    """
+    Applies the prefit filter to the prefit dataframe
+    """
     return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
 
 
 def map_ic_params(model, X_test, y_test, ic_params_map, train_result):
-    # TODO: docstrings
+    """
+    Maps the test initial condition parameters according to `ic_params_map`
 
-        ic_params = {}
+    Parameters:
+        model: `model.DarkGreyModel`
+            model used for the prediction
+        X_test: `pandas.DataFrame`
+            A pandas DataFrame of the test input data X
+        y_test: `pandas.Series`
+            A pandas Series of the test input data y
+        ic_params_map: dict
+            A dictionary of mapping functions that return the initial condition parameters
+        train_results: `model.DarkGreyModelResult`
+            model result object for training data
 
-        for key in ic_params_map:
-            if key in model.params:
-                ic_params[key] = ic_params_map[key](X_test, y_test, train_result)
+    Returns the initial conditions parameters dict
 
-        return ic_params
+    ~~~~
+    Assuming y_test holds the internal temperatures `Ti`
+
+    ic_params_map = {
+        'Ti0': lambda X_test, y_test, train_result: y_test.iloc[0],
+        'Th0': lambda X_test, y_test, train_result: y_test.iloc[0],
+        'Te0': lambda X_test, y_test, train_result: train_result.Te[-1],
+    }
+
+    will map the first internal temperature in the test set to both `Ti0` and `Th0`
+    and the last `Te` value from the training results to `Te0`
+    ~~~~
+    """
+
+    ic_params = {}
+
+    for key in ic_params_map:
+        if key in model.params:
+            ic_params[key] = ic_params_map[key](X_test, y_test, train_result)
+
+    return ic_params
 
 
 def get_ic_params(model, X_train):
