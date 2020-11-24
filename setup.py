@@ -59,8 +59,13 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'dev': [
-            'wheel==0.32.3'
-        ],
+            'statsmodels==0.11.1',
+            'numdifftools==0.9.39',
+            'scikit-learn==0.23.1',
+            'matplotlib==3.3.2',
+            'jupyter==1.0.0',
+            'notebook==6.1.5'
+        ]
         'test': [
             'pyflakes==2.1.1',
             'pytest==5.4.1',
