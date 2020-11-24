@@ -44,7 +44,7 @@ This gives you a headstart for using DarkGreyBox in anger and allows you to run 
 
 You can install these additional dependencies via pip:
 ```
-pip install darkgreybox -e .[dev]
+pip install darkgreybox[dev]
 ```
 
 ## Documentation
@@ -85,5 +85,5 @@ pyflakes .
 
 You can install the additional dependencies required for testing via pip:
 ```
-pip install darkgreybox -e .[test]
+pip install darkgreybox[test]
 ```

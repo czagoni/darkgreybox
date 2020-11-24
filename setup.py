@@ -1,17 +1,15 @@
 from setuptools import setup
 from os import path
 
-__VERSION__='0.0.1' # CodePipeline will populate this when building
+__VERSION__='0.1.0'
 
 here = path.abspath(path.dirname(__file__))
 
 setup(
     name='darkgreybox',
-
     version=__VERSION__,
-
-    description='Dark Grey Box',
-    long_description="Library for modelling...",
+    description='DarkGreyBox: An Open-Source Data-Driven Python Building Thermal Model Inspired By Genetic Algorithms and Machine Learning',
+    keywords='python model thermal machine-learning genetic-algorithm data-science',
 
     # The project's main homepage.
     url='https://github.com/czagoni/darkgreybox',
@@ -26,15 +24,17 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
     ],
 
     # What does your project relate to?
