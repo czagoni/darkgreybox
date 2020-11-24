@@ -65,7 +65,7 @@ setup(
             'matplotlib==3.3.2',
             'jupyter==1.0.0',
             'notebook==6.1.5'
-        ]
+        ],
         'test': [
             'pyflakes==2.1.1',
             'pytest==5.4.1',
