@@ -77,7 +77,7 @@ directory (you will need to have `pytest` >= 5.4.1 installed):
 pytest
 ```
 
-You can check linting from the repo root directory (you will need to have `pyflakes >= 2.1.1 installed):
+You can check linting from the repo root directory (you will need to have `pyflakes` >= 2.1.1 installed):
 
 ```
 pyflakes .

@@ -1,14 +1,21 @@
 from setuptools import setup
 from os import path
 
+
 __VERSION__='0.1.0'
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 here = path.abspath(path.dirname(__file__))
+
 
 setup(
     name='darkgreybox',
     version=__VERSION__,
     description='DarkGreyBox: An Open-Source Data-Driven Python Building Thermal Model Inspired By Genetic Algorithms and Machine Learning',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords='python model thermal machine-learning genetic-algorithm data-science',
 
     # The project's main homepage.
