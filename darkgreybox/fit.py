@@ -138,8 +138,7 @@ def train_models(models, X_train, y_train, error_metric,
     ~~~~
     """
 
-    num_models = len(models) * (len(splits) if splits is not None else 1)
-    logger.info(f'Training {num_models} models...')
+    logger.info(f'Training models...')
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
