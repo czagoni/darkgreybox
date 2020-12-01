@@ -37,7 +37,27 @@ def plot(y, model_result, suptitle=''):
     ax[0, 1].set_ylabel('[˚C]')
     ax[0, 1].set_title('Residuals')
 
+    plot_pacf(y - model_result.Z, ax=ax[1, 1], lags=50)
 
-    plot_pacf(y - model_result.Z, ax=ax[1, 1], lags=50);
+    fig.tight_layout()
+
+
+def plot_input_data(df):
+
+    # keep this out of pandas plotting capabilities for compatibility
+    # with the rest of the plots
+    fig, ax = plt.subplots(2, 1, figsize=(12, 8))
+
+    ax[0].plot(df.index, df['Ti'], label='Ti', alpha=0.75)
+    ax[0].plot(df.index, df['Ta'], label='Ta', alpha=0.75)
+    ax[0].legend()
+    ax[0].set_ylabel('[˚C]')
+    ax[0].set_xticks([], minor=[])
+    ax[0].set_xlim(df.index[0], df.index[-1])
+
+    ax[1].plot(df.index, df['Ph'], label='Ph', alpha=0.75, color='black')
+    ax[1].legend()
+    ax[1].set_ylabel('[kWh]')
+    ax[1].set_xlim(df.index[0], df.index[-1])
 
     fig.tight_layout()
