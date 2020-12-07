@@ -10,7 +10,7 @@ from darkgreybox.model import DarkGreyModel
 
 def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
                 prefit_splits=None, prefit_filter=None, reduce_train_results=True,
-                method='nelder', n_jobs=-1, verbose=10):
+                method='nelder', obj_func=None, n_jobs=-1, verbose=10):
     """
     Given a list of `models` applies a prefit according to `prefit_splits`, then fits them 
     to the training data and evaluates them on the test data. 
@@ -42,6 +42,8 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
+        obj_func: function
+            The objective function to minimise during the fitting
         n_jobs: int
             The number of parallel jobs to be run as described by `joblib.Parallel`
         verbose: int
@@ -58,6 +60,7 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
                              splits=prefit_splits,
                              error_metric=error_metric,
                              method=method,
+                             obj_func=obj_func,
                              n_jobs=n_jobs,
                              verbose=verbose)
 
@@ -70,6 +73,7 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
                             splits=None, 
                             error_metric=error_metric,
                             method=method, 
+                            obj_func=obj_func,
                             n_jobs=n_jobs,
                             verbose=verbose)
 
@@ -89,7 +93,7 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
 
 
 def train_models(models, X_train, y_train, error_metric,
-                 splits=None, method='nelder', n_jobs=-1, verbose=10):
+                 splits=None, method='nelder', obj_func=None, n_jobs=-1, verbose=10):
     """
     Trains the `models` for the given `X_train` and `y_train` training data
     for `splits` using `method`. 
@@ -109,6 +113,8 @@ def train_models(models, X_train, y_train, error_metric,
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
+        obj_func: function
+            The objective function to minimise during the fitting
         n_jobs: int
             The number of parallel jobs to be run as described by `joblib.Parallel`
         verbose: int
@@ -142,17 +148,17 @@ def train_models(models, X_train, y_train, error_metric,
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
-            df = pd.concat(p(delayed(train_model)(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method)
+            df = pd.concat(p(delayed(train_model)(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
                              for _, idx in splits or [(None, range(len(X_train)))] for model in models), ignore_index=True)
 
     else:
-        df = pd.concat([train_model(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method)
+        df = pd.concat([train_model(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
                          for _, idx in splits or [(None, range(len(X_train)))] for model in models], ignore_index=True)
 
     return df
 
 
-def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
+def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj_func=None):
     """
     Trains a copy of `basemodel` for the given `X_train` and `y_train` training data
     using `method`. 
@@ -169,6 +175,8 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
+        obj_func: function
+            The objective function to minimise during the fitting
 
     Returns:
         `pandas.DataFrame` with a single record for the fit model's result 
@@ -181,7 +189,8 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder'):
         model = model.fit(X=X_train.to_dict(orient='list'),
                           y=y_train.values,
                           method=method,
-                          ic_params=get_ic_params(model, X_train))
+                          ic_params=get_ic_params(model, X_train),
+                          obj_func=obj_func)
     except ValueError:
         end = timer()
         return pd.DataFrame({'start_date': [X_train.index[0]],
