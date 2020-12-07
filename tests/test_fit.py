@@ -90,6 +90,8 @@ class DarkGreyFitTest(unittest.TestCase):
     @patch('darkgreybox.fit.train_models')
     def test_darkgreyfit(self, mock_train_models, mock_predict_models, mock_reduce_results_df, mock_apply_prefit_filter):
 
+        mock_obj_func = MagicMock()
+
         mock_train_models.return_value = self.train_df
         mock_predict_models.return_value = self.test_df
 
@@ -100,18 +102,19 @@ class DarkGreyFitTest(unittest.TestCase):
                                           self.X_test.index[-1], self.test_time[0], self.test_error[0]]])
 
         actual_df = darkgreyfit(models=self.models,
-                            X_train=self.X_train,
-                            y_train=self.y_train,
-                            X_test=self.X_test,
-                            y_test=self.y_test,
-                            ic_params_map=self.ic_params_map,
-                            error_metric=self.error_metric,
-                            prefit_splits=self.prefit_splits,
-                            prefit_filter=None,
-                            reduce_train_results=False,
-                            method='nelder',
-                            n_jobs=-1,
-                            verbose=10)
+                                X_train=self.X_train,
+                                y_train=self.y_train,
+                                X_test=self.X_test,
+                                y_test=self.y_test,
+                                ic_params_map=self.ic_params_map,
+                                error_metric=self.error_metric,
+                                prefit_splits=self.prefit_splits,
+                                prefit_filter=None,
+                                reduce_train_results=False,
+                                method='nelder',
+                                obj_func=mock_obj_func,
+                                n_jobs=-1,
+                                verbose=10)
 
         mock_train_calls = mock_train_models.call_args_list
 
@@ -121,6 +124,7 @@ class DarkGreyFitTest(unittest.TestCase):
                                  'splits': self.prefit_splits,
                                  'error_metric': self.error_metric,
                                  'method': 'nelder',
+                                 'obj_func': mock_obj_func,
                                  'n_jobs': -1,
                                  'verbose': 10})
 
@@ -130,19 +134,20 @@ class DarkGreyFitTest(unittest.TestCase):
                                  'splits': None,
                                  'error_metric': self.error_metric,
                                  'method': 'nelder',
+                                 'obj_func': mock_obj_func,
                                  'n_jobs': -1,
                                  'verbose': 10})
 
         mock_reduce_results_df.assert_not_called()
 
         mock_predict_models.assert_called_with(models=self.models,
-                                          X_test=self.X_test,
-                                          y_test=self.y_test,
-                                          ic_params_map=self.ic_params_map,
-                                          error_metric=self.error_metric,
-                                          train_results=self.train_model_results,
-                                          n_jobs=-1,
-                                          verbose=10)
+                                               X_test=self.X_test,
+                                               y_test=self.y_test,
+                                               ic_params_map=self.ic_params_map,
+                                               error_metric=self.error_metric,
+                                               train_results=self.train_model_results,
+                                               n_jobs=-1,
+                                               verbose=10)
 
         assert_frame_equal(expected_df, actual_df)
 
@@ -291,6 +296,7 @@ class FitTest(unittest.TestCase):
         error_metric.return_value = 0.95
         mock_get_ic_params.return_value = {'A0': 1}
         mock_timer.return_value = 1.0
+        mock_obj_func = MagicMock()
 
         expected_df = pd.DataFrame({
             'start_date': [self.X_train.index[0]],
@@ -305,13 +311,15 @@ class FitTest(unittest.TestCase):
         actual_df = train_model(base_model=model,
                                 X_train=self.X_train,
                                 y_train=self.y_train,
+                                error_metric=error_metric,
                                 method="splendid",
-                                error_metric=error_metric)
+                                obj_func=mock_obj_func)
 
         model.fit.assert_called_with(X=self.X_train.to_dict(orient='list'),
                                      y=self.y_train.values,
                                      method="splendid",
-                                     ic_params={'A0': 1})
+                                     ic_params={'A0': 1},
+                                     obj_func=mock_obj_func)
 
         model_fit.predict.assert_called_with(self.X_train)
         # error_metric.assert_called_with(self.y_train.values, self.Z_train)
@@ -329,6 +337,7 @@ class FitTest(unittest.TestCase):
         mock_get_ic_params.return_value = {'A0': 1}
         error_metric = MagicMock()
         mock_timer.return_value = 1.0
+        mock_obj_func = MagicMock()
 
         expected_df = pd.DataFrame({
             'start_date': [self.X_train.index[0]],
@@ -343,13 +352,15 @@ class FitTest(unittest.TestCase):
         actual_df = train_model(base_model=model,
                                 X_train=self.X_train,
                                 y_train=self.y_train,
+                                error_metric=error_metric,
                                 method="splendid",
-                                error_metric=error_metric)
+                                obj_func=mock_obj_func)
 
         model.fit.assert_called_with(X=self.X_train.to_dict(orient='list'),
                                      y=self.y_train.values,
                                      method="splendid",
-                                     ic_params={'A0': 1})
+                                     ic_params={'A0': 1},
+                                     obj_func=mock_obj_func)
 
         assert_frame_equal(expected_df, actual_df)
 
@@ -520,7 +531,7 @@ class FitTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def mock_train_model_side_effect(self, base_model, X_train, y_train, error_metric, method):
+    def mock_train_model_side_effect(self, base_model, X_train, y_train, error_metric, method, obj_func):
         return pd.DataFrame({
             'start_date': [X_train.index[0]],
             'end_date': [X_train.index[-1]],
