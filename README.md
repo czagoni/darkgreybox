@@ -6,6 +6,8 @@
 
 ## DarkGreyBox: An open-source data-driven python building thermal model inspired by Genetic Algorithms and Machine Learning
 
+### Read the medium article here: https://medium.com/analytics-vidhya/data-driven-thermal-models-for-buildings-15385f744fc5
+
 Constructing simple, accurate and easy-to-interpret thermal models for existing buildings is essential in reducing the environmental impact of our built environment. DarkGreyBox provides a data-driven approach to constructing and fitting RC-equivalent grey box thermal models for buildings, within the classic Machine Learning (ML) framework for straightforward model performance evaluation. 
 
 A large number of competing models can be set up in easy-to-configure pipelines and the best performing models are selected based on principles inspired by Genetic Algorithms (GA). This approach also addresses the main disadvanatages of classical grey-box thermal modelling techniques by not requiring initial condition values for the thermal parameters to be pre-calculated and also not requiring an excitation signal to be injected into the building for successful model convergence and evaluation.
