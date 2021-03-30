@@ -1,5 +1,6 @@
 import logging.config
 
+
 def enable_logging(level='INFO'):
     '''Enables global logging
     Parameters:
@@ -26,7 +27,7 @@ def enable_logging(level='INFO'):
     )
     logging.config.dictConfig(logging_config)
 
-    logger.info(f"Logging enabled...")
+    logger.info("Logging enabled...")
 
 
 # Create shared logger object

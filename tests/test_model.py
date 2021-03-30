@@ -1,10 +1,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import unittest 
+import unittest
 
-from darkgreybox.model import (DarkGreyModel, 
-                               Ti, TiTe, TiTh, TiTeTh, TiTeThRia, 
+from darkgreybox.model import (DarkGreyModel,
+                               Ti, TiTe, TiTh, TiTeTh, TiTeThRia,
                                DarkGreyModelResult)
 
 
@@ -22,7 +22,7 @@ class DGMTest(DarkGreyModel):
         for i in range(1, num_rec):
             A[i] = C[i] * B
 
-        return DarkGreyModelResult(A)  
+        return DarkGreyModelResult(A)
 
 
 class DarkGreyModelTest(unittest.TestCase):
@@ -33,19 +33,19 @@ class DarkGreyModelTest(unittest.TestCase):
         params = {'A0': {'value': 10},
                   'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
         self.assertAlmostEqual(1, m.result.params['A0'].value, places=3)
         self.assertAlmostEqual(0.1, m.result.params['B'].value, places=3)
-       
+
     def test_fit_min_max(self):
 
         y = np.array([1, 2])
         params = {'A0': {'value': 10, 'min': 2},
                   'B': {'value': 0.01, 'max': 0.05}}
         X = {'C': np.array([10, 20])}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
         self.assertAlmostEqual(2, m.result.params['A0'].value, places=3)
@@ -57,7 +57,7 @@ class DarkGreyModelTest(unittest.TestCase):
         params = {'A0': {'value': 10, 'vary': False},
                   'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
         self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
@@ -70,7 +70,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
         ic_params = {'A0': 15}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
 
         self.assertAlmostEqual(15, m.result.params['A0'].value, places=3)
@@ -83,7 +83,7 @@ class DarkGreyModelTest(unittest.TestCase):
                   'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
         ic_params = {'A0': 15, 'A10': 150}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
 
         self.assertAlmostEqual(15, m.result.params['A0'].value, places=3)
@@ -92,13 +92,13 @@ class DarkGreyModelTest(unittest.TestCase):
     def test_fit_custom_obj_func(self):
 
         def obj_func(params, *args, **kwargs):
-            return ((kwargs['model'](params=params, X=kwargs['X']).Z - kwargs['y']) ** 2).ravel()    
+            return ((kwargs['model'](params=params, X=kwargs['X']).Z - kwargs['y']) ** 2).ravel()
 
         y = np.array([1, 2])
         params = {'A0': {'value': 10, 'vary': False},
                   'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
-        
+
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', obj_func=obj_func)
 
         self.assertAlmostEqual(10, m.result.params['A0'].value, places=3)
@@ -110,10 +110,10 @@ class DarkGreyModelTest(unittest.TestCase):
         params = {'A0': {'value': 10},
                   'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
-        
+
         actual_result = DGMTest(params=params, rec_duration=1) \
-                            .fit(X=X, y=y, method='nelder') \
-                            .predict({'C': np.array([10, 20, 30])})
+            .fit(X=X, y=y, method='nelder') \
+            .predict({'C': np.array([10, 20, 30])})
 
         self.assertAlmostEqual(1, actual_result.Z[0], places=3)
         self.assertAlmostEqual(2, actual_result.Z[1], places=3)
@@ -126,10 +126,10 @@ class DarkGreyModelTest(unittest.TestCase):
                   'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
         ic_params = {'A0': 15}
-        
+
         actual_result = DGMTest(params=params, rec_duration=1) \
-                            .fit(X=X, y=y, method='nelder') \
-                            .predict({'C': np.array([10, 20, 30])}, ic_params=ic_params)
+            .fit(X=X, y=y, method='nelder') \
+            .predict({'C': np.array([10, 20, 30])}, ic_params=ic_params)
 
         self.assertAlmostEqual(15, actual_result.Z[0], places=3)
         self.assertAlmostEqual(2, actual_result.Z[1], places=3)
@@ -139,7 +139,7 @@ class DarkGreyModelTest(unittest.TestCase):
 
         params = {'A0': {'value': 10},
                   'B': {'value': 0.01}}
-        
+
         m = DGMTest(params=params, rec_duration=1).lock()
 
         for param in m.params.keys():
@@ -160,13 +160,13 @@ class TiTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = Ti(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
         assert_array_equal(np.array([10, 50, 10]), actual_result.Ti)
         assert_array_equal(actual_result.Z, actual_result.Ti)
-        
+
     def test_fit(self):
 
         y = np.array([10, 10, 20])
@@ -181,9 +181,9 @@ class TiTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([0, 10, 0]),
         }
-        
+
         m = Ti(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder')
+            .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
@@ -208,14 +208,14 @@ class TiThTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTh(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
         assert_array_equal(np.array([10, 30, 10]), actual_result.Ti)
         assert_array_equal(np.array([20, 30, 30]), actual_result.Th)
         assert_array_equal(actual_result.Z, actual_result.Ti)
-        
+
     def test_fit(self):
 
         y = np.array([10, 10, 20])
@@ -233,9 +233,9 @@ class TiThTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTh(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder')
+            .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
@@ -260,14 +260,14 @@ class TiThTest(unittest.TestCase):
 #             'Ta': np.array([10, 10, 10]),
 #             'Ph': np.array([10, 0, 0]),
 #         }
-        
+
 #         m = TiTe(params=params, rec_duration=1)
 #         actual_result = m.model(m.params, X)
 
 #         assert_array_equal(np.array([10, 30, 10]), actual_result.Ti)
 #         assert_array_equal(np.array([20, 30, 30]), actual_result.Te)
 #         assert_array_equal(actual_result.Z, actual_result.Ti)
-        
+
 #     def test_fit(self):
 
 #         y = np.array([10, 10, 20])
@@ -285,7 +285,7 @@ class TiThTest(unittest.TestCase):
 #             'Ta': np.array([10, 10, 10]),
 #             'Ph': np.array([10, 0, 0]),
 #         }
-        
+
 #         m = TiTe(params=params, rec_duration=1) \
 #                 .fit(X=X, y=y, method='nelder')
 
@@ -312,7 +312,7 @@ class TiTeTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTe(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
@@ -336,9 +336,9 @@ class TiTeTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTe(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder')
+            .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
@@ -366,7 +366,7 @@ class TiTeThTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTeTh(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
@@ -394,9 +394,9 @@ class TiTeThTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTeTh(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder')
+            .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
@@ -425,7 +425,7 @@ class TiTeThRiaTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTeThRia(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
@@ -454,9 +454,9 @@ class TiTeThRiaTest(unittest.TestCase):
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),
         }
-        
+
         m = TiTeThRia(params=params, rec_duration=1) \
-                .fit(X=X, y=y, method='nelder')
+            .fit(X=X, y=y, method='nelder')
 
         for k, v in params.items():
             self.assertAlmostEqual(v['value'], m.result.params[k].value, places=3)
