@@ -2,7 +2,7 @@ from setuptools import setup
 from os import path
 
 
-__VERSION__='0.1.0'
+__VERSION__ = '0.2.0'
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -13,7 +13,8 @@ here = path.abspath(path.dirname(__file__))
 setup(
     name='darkgreybox',
     version=__VERSION__,
-    description='DarkGreyBox: An Open-Source Data-Driven Python Building Thermal Model Inspired By Genetic Algorithms and Machine Learning',
+    description='DarkGreyBox: An Open-Source Data-Driven Python Building Thermal Model'
+                'Inspired By Genetic Algorithms and Machine Learning',
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords='python model thermal machine-learning genetic-algorithm data-science',
@@ -55,9 +56,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'lmfit==1.0.1',
-        'pandas==1.1.2',
-        'joblib==0.16.0'
+        'lmfit~=1.0.2',
+        'pandas~=1.2.3',
+        'joblib~=1.0.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -66,18 +67,18 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'dev': [
-            'statsmodels==0.11.1',
-            'numdifftools==0.9.39',
-            'scikit-learn==0.23.1',
-            'matplotlib==3.3.2',
+            'statsmodels~=0.12.2',
+            'numdifftools~=0.9.39',
+            'scikit-learn~=0.24.1',
+            'matplotlib~=3.4.0',
             'jupyter==1.0.0',
             'notebook==6.1.5'
         ],
         'test': [
-            'pyflakes==2.1.1',
-            'pytest==5.4.1',
-            'pytest-mock==1.10.4',
-            'pytest-cov==2.8.1',
+            'flake8~=3.9.0',
+            'pytest~=6.2.2',
+            'pytest-mock~=3.5.1',
+            'pytest-cov~=2.11.1',
         ],
     },
 
