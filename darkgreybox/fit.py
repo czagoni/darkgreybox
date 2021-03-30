@@ -5,7 +5,7 @@ from timeit import default_timer as timer
 from joblib import Parallel, delayed
 
 from darkgreybox import logger
-from darkgreybox.model import DarkGreyModel
+from darkgreybox.base_model import DarkGreyModel
 
 
 def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,

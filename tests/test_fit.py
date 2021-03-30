@@ -5,7 +5,7 @@ from pandas.testing import assert_frame_equal
 import unittest
 from unittest.mock import MagicMock, patch
 
-from darkgreybox.model import DarkGreyModel
+from darkgreybox.base_model import DarkGreyModel
 from darkgreybox.fit import (get_ic_params,
                              map_ic_params,
                              train_model,
@@ -17,6 +17,10 @@ from darkgreybox.fit import (get_ic_params,
                              apply_prefit_filter)
 
 
+@patch('darkgreybox.fit.apply_prefit_filter')
+@patch('darkgreybox.fit.reduce_results_df')
+@patch('darkgreybox.fit.predict_models')
+@patch('darkgreybox.fit.train_models')
 class DarkGreyFitTest(unittest.TestCase):
 
     def setUp(self):
@@ -84,15 +88,12 @@ class DarkGreyFitTest(unittest.TestCase):
                                                   ('test', 'time'),
                                                   ('test', 'error')])
 
-    @patch('darkgreybox.fit.apply_prefit_filter')
-    @patch('darkgreybox.fit.reduce_results_df')
-    @patch('darkgreybox.fit.predict_models')
-    @patch('darkgreybox.fit.train_models')
-    def test_darkgreyfit(self,
-                         mock_train_models,
-                         mock_predict_models,
-                         mock_reduce_results_df,
-                         mock_apply_prefit_filter):
+    def test__darkgreyfit__correct_data_flow(
+            self,
+            mock_train_models,
+            mock_predict_models,
+            mock_reduce_results_df,
+            mock_apply_prefit_filter):
 
         mock_obj_func = MagicMock()
 
@@ -155,8 +156,16 @@ class DarkGreyFitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
-        # test with reduce_train_results=True
+    def test__darkgreyfit__with_reduce_train_results(
+            self,
+            mock_train_models,
+            mock_predict_models,
+            mock_reduce_results_df,
+            mock_apply_prefit_filter):
 
+        mock_obj_func = MagicMock()
+        mock_train_models.return_value = self.train_df
+        mock_predict_models.return_value = self.test_df
         mock_reduce_results_df.return_value = self.train_df
 
         darkgreyfit(models=self.models,
@@ -170,13 +179,22 @@ class DarkGreyFitTest(unittest.TestCase):
                     prefit_filter=None,
                     reduce_train_results=True,
                     method='nelder',
+                    obj_func=mock_obj_func,
                     n_jobs=-1,
                     verbose=10)
 
         mock_reduce_results_df.assert_called_with(self.train_df)
 
-        # test with prefit_filter
+    def test__darkgreyfit__with_prefit_filter(
+            self,
+            mock_train_models,
+            mock_predict_models,
+            mock_reduce_results_df,
+            mock_apply_prefit_filter):
 
+        mock_obj_func = MagicMock()
+        mock_train_models.return_value = self.train_df
+        mock_predict_models.return_value = self.test_df
         mock_apply_prefit_filter.return_value = self.train_df
 
         darkgreyfit(models=self.models,
@@ -190,6 +208,7 @@ class DarkGreyFitTest(unittest.TestCase):
                     prefit_filter=self.prefit_filter,
                     reduce_train_results=False,
                     method='nelder',
+                    obj_func=mock_obj_func,
                     n_jobs=-1,
                     verbose=10)
 
@@ -221,7 +240,7 @@ class FitTest(unittest.TestCase):
         self.Z_test = np.array([120, 130])
 
     @patch('darkgreybox.fit.train_model')
-    def test_train_models_not_parallel_splits_none(self, mock_train_model):
+    def test__train_models__not_parallel_splits_none(self, mock_train_model):
 
         mock_train_model.side_effect = self.mock_train_model_side_effect
 
@@ -250,7 +269,7 @@ class FitTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df)
 
     @patch('darkgreybox.fit.train_model')
-    def test_train_models_not_parallel(self, mock_train_model):
+    def test__train_models__not_parallel(self, mock_train_model):
 
         mock_train_model.side_effect = self.mock_train_model_side_effect
 
@@ -281,14 +300,14 @@ class FitTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df)
 
     @patch('darkgreybox.fit.train_model')
-    def test_train_models_parallel(self, mock_train_model):
+    def test__train_models__parallel(self, mock_train_model):
         # TODO
         pass
 
     @patch('darkgreybox.fit.copy.deepcopy')
     @patch('darkgreybox.fit.timer')
     @patch('darkgreybox.fit.get_ic_params')
-    def test_train_model(self, mock_get_ic_params, mock_timer, mock_deepcopy):
+    def test__train_model(self, mock_get_ic_params, mock_timer, mock_deepcopy):
 
         model = MagicMock()
         mock_deepcopy.return_value = model
@@ -334,7 +353,7 @@ class FitTest(unittest.TestCase):
     @patch('darkgreybox.fit.copy.deepcopy')
     @patch('darkgreybox.fit.timer')
     @patch('darkgreybox.fit.get_ic_params')
-    def test_train_model_fit_exception(self, mock_get_ic_params, mock_timer, mock_deepcopy):
+    def test__train_model__fit_exception(self, mock_get_ic_params, mock_timer, mock_deepcopy):
 
         model = MagicMock()
         mock_deepcopy.return_value = model
@@ -370,7 +389,7 @@ class FitTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df)
 
     @patch('darkgreybox.fit.predict_model')
-    def test_predict_models_not_parallel(self, mock_predict_model):
+    def test__predict_models__not_parallel(self, mock_predict_model):
 
         mock_predict_model.side_effect = self.mock_predict_model_side_effect
 
@@ -403,14 +422,14 @@ class FitTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df, check_dtype=False)
 
     @patch('darkgreybox.fit.predict_model')
-    def test_predict_models_parallel(self, mock_predict_model):
+    def test__predict_models__parallel(self, mock_predict_model):
         # TODO
         pass
 
     @patch('darkgreybox.fit.map_ic_params')
     @patch('darkgreybox.fit.timer')
-    @patch('darkgreybox.model.DarkGreyModel.predict')
-    def test_predict_model(self, mock_predict, mock_timer, mock_map_ic_params):
+    @patch('darkgreybox.base_model.DarkGreyModel.predict')
+    def test__predict_model(self, mock_predict, mock_timer, mock_map_ic_params):
 
         model = DarkGreyModel({}, 1)
         model_result = MagicMock()
@@ -445,7 +464,7 @@ class FitTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df)
 
     @patch('darkgreybox.fit.timer')
-    def test_predict_model_not_model_instance(self, mock_timer):
+    def test__predict_model__not_model_instance(self, mock_timer):
 
         model = 1.0
         mock_timer.return_value = 1.0
@@ -469,7 +488,7 @@ class FitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
-    def test_reduce_results_df(self):
+    def test__reduce_results_df(self):
 
         df = pd.DataFrame(data={
             'value': [0, 0, 0, 10, 20, 30, 40, 50],
@@ -487,7 +506,7 @@ class FitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
-    def test_apply_prefit_filter(self):
+    def test__apply_prefit_filter(self):
 
         df = pd.DataFrame(data={
             'value': [0, 0, 0, 10, 20, 30, 40, 50],
@@ -505,7 +524,7 @@ class FitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
-    def test_map_ic_params(self):
+    def test__map_ic_params(self):
 
         train_result = [57]
 
@@ -524,7 +543,7 @@ class FitTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_get_ic_params(self):
+    def test__get_ic_params(self):
 
         model = MagicMock()
         model.params = {'A0': 0, 'B': 1, 'C0': 2, 'D': 3}
