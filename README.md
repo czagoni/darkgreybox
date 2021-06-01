@@ -29,16 +29,16 @@ DarkGreyBox requires:
 
 Note: these are only the core dependencies and you will most likely want to install either the optional dependencies or your preferred custom alternatives to them.
 
-### User installation
+### User installation from PyPi package (latest release)
 
 Install DarkGreyBox via `pip`:
-```
+```bash
 pip install darkgreybox
 ```
 
-### Optional Dependencies
+#### Optional Dependencies
 
-This gives you a headstart for using DarkGreyBox in anger and allows you to run the tutorials locally.
+This gives you a headstart for using DarkGreyBox in anger.
 
 - scikit-learn (>=0.24.1)
 - numdifftools (>=0.9.39)
@@ -48,11 +48,25 @@ This gives you a headstart for using DarkGreyBox in anger and allows you to run 
 - notebook (>=6.1.5)
 
 You can install these additional dependencies via pip:
-```
+```bash
 pip install darkgreybox[dev]
 ```
 
+### User installation from source repository
+
+You can check the latest sources with the command::
+```bash
+git clone https://github.com/czagoni/darkgreybox.git
+```
+
+You can install the dev dependencies (from the root of the repository):
+```bash
+pip install -e .'[dev]'
+```
+
 ## Documentation
+
+To access the tutorials you need to have cloned DarkGreyBox from the source repository (see above).
 
 ### Tutorials
 
@@ -63,6 +77,11 @@ The easiest way to get into the details of how DarkGreyBox works is through foll
 * [Demo Notebook 03 - TiTe Model Wrapper Fit PASS](docs/tutorials/darkgrey_poc_demo_03.ipynb): This notebook demonstrates the usage of the DarkGreyBox models via fitting them with a wrapper function for a TiTe model.
 * [Demo Notebook 04 - DarkGreyFit](docs/tutorials/darkgrey_poc_demo_04.ipynb): This notebook demonstrates the usage of the DarkGreyBox models via fitting them with DarkGreyFit, setting up and evaluating multiple pipelines at once.
 
+Launch a new jupyter notebook from the root of the repository:
+```bash
+jupyter notebook
+```
+
 ## Development
 
 We welcome new contributors of all experience levels. 
@@ -70,25 +89,26 @@ We welcome new contributors of all experience levels.
 ### Source code
 
 You can check the latest sources with the command::
+```bash
+git clone https://github.com/czagoni/darkgreybox.git
+```
 
-    git clone https://github.com/czagoni/darkgreybox.git
+You can install the dev and test dependencies (from the root of the repository):
+```bash
+pip install -e .'[dev,test]'
+```
 
 ### Testing
 
 After installation, you can launch the test suite from the repo root
 directory (you will need to have `pytest` >= 6.2.2 installed):
-
-```
+```bash
 pytest
 ```
 
 You can check linting from the repo root directory (you will need to have `flake8` >= 3.9.0 installed):
-
-```
+```bash
 flake8
 ```
 
-You can install the additional dependencies required for testing via pip:
-```
-pip install darkgreybox[test]
-```
+
