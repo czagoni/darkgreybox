@@ -1,5 +1,5 @@
 orbs:
-  python: circleci/python@1.2.0
+  python: circleci/python@1.4.0
 
 version: 2.1
 
