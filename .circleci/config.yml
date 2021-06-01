@@ -1,13 +1,18 @@
-orbs:
-  python: circleci/python@1.4.0
-
 version: 2.1
 
+jobs:
+  build_test:
+    docker:
+      - image: circleci/python:3.8.7
+    steps:
+      - checkout  # checkout source code to working directory
+      - run:
+          command: |  # install dependencies
+      - run:
+          command: |  # Run test suite
+            flake8 && pytest
+
 workflows:
-  main:
+  build_test_publish:
     jobs:
-      - python/test:
-          args: '.[dev,test]'
-          pkg-manager: pip-dist
-          pip-dependency-file: setup.py
-          test-tool: pytest
+      - build_test
