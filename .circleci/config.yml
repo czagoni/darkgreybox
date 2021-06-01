@@ -8,6 +8,7 @@ jobs:
       - checkout  # checkout source code to working directory
       - run:
           command: |  # install dependencies
+            pip install -e .'[dev,test]'
       - run:
           command: |  # Run test suite
             flake8 && pytest
