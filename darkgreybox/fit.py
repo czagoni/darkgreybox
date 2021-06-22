@@ -7,6 +7,9 @@ from joblib import Parallel, delayed
 
 from darkgreybox import logger
 from darkgreybox.base_model import DarkGreyModel
+from darkgreybox.prefit import prefit_models
+
+# TODO: move train models to own module to solve circular import
 
 
 def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_metric,
@@ -55,23 +58,21 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
 
     """
 
-    prefit_df = train_models(
-        models=models,
-        X_train=X_train,
-        y_train=y_train,
-        splits=prefit_splits,
-        error_metric=error_metric,
-        method=method,
-        obj_func=obj_func,
-        n_jobs=n_jobs,
-        verbose=verbose
+    models_to_train = prefit_models(
+        models,
+        X_train,
+        y_train,
+        error_metric,
+        prefit_splits,
+        prefit_filter,
+        method,
+        obj_func,
+        n_jobs,
+        verbose
     )
 
-    if prefit_filter is not None:
-        prefit_df = apply_prefit_filter(prefit_df, prefit_filter)
-
     train_df = train_models(
-        models=prefit_df['model'].tolist(),
+        models=models_to_train,
         X_train=X_train,
         y_train=y_train,
         splits=None,
@@ -365,16 +366,6 @@ def reduce_results_df(df, decimals=6):
               .drop_duplicates(subset=['error'], keep='first')
               .sort_values('error')
               .reset_index(drop=True))
-
-
-def apply_prefit_filter(prefit_df, prefit_filter=None):
-    """
-    Applies the prefit filter to the prefit dataframe
-    """
-    if prefit_filter is None:
-        return prefit_df
-    else:
-        return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
 
 
 def map_ic_params(ic_params_map, model, X_test, y_test, train_result):

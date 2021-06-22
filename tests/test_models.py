@@ -16,8 +16,6 @@ class TiTest(unittest.TestCase):
             'Ci': {'value': 0.25},
         }
 
-        y = np.array([10, 10, 20])
-
         X = {
             'Ta': np.array([10, 10, 10]),
             'Ph': np.array([10, 0, 0]),

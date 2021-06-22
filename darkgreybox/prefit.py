@@ -1,8 +1,8 @@
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, cast
 
 import pandas as pd
 
-from darkgreybox.fit import apply_prefit_filter, train_models
+from darkgreybox.fit import train_models
 
 
 def prefit_models(
@@ -39,3 +39,13 @@ def prefit_models(
         raise ValueError('No valid models found during prefit')
 
     return filtered_df['model'].tolist()
+
+
+def apply_prefit_filter(prefit_df: pd.DataFrame, prefit_filter: Optional[Callable] = None) -> pd.DataFrame:
+    """
+    Applies the prefit filter to the prefit dataframe
+    """
+    if prefit_filter is None:
+        return prefit_df
+    else:
+        return cast(pd.DataFrame, prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True))

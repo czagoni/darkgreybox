@@ -4,9 +4,10 @@ from unittest.mock import MagicMock, patch
 import datetime as dt
 import numpy as np
 import pandas as pd
+from pandas.testing import assert_frame_equal
 
 from darkgreybox.models import Ti
-from darkgreybox.prefit import prefit_models
+from darkgreybox.prefit import prefit_models, apply_prefit_filter
 
 
 train_start = dt.datetime(2021, 1, 1, 1, 0)
@@ -160,3 +161,21 @@ class PrefitModelsTest(unittest.TestCase):
                         prefit_filter,
                         n_jobs=1
                     )
+
+    def test__apply_prefit_filter(self):
+
+        df = pd.DataFrame(data={
+            'value': [0, 0, 0, 10, 20, 30, 40, 50],
+            'error': [np.nan, -np.inf, np.inf, 2.0000011, 2.0000012, 2.000002, 1, 3],
+            'time': [0, 0, 0, 2, 1, 3, 4, 5]
+        })
+
+        expected_df = pd.DataFrame(data={
+            'value': [10, 40],
+            'error': [2.0000011, 1],
+            'time': [2, 4]
+        })
+
+        actual_df = apply_prefit_filter(df, prefit_filter=lambda x: abs(x) < 2.0000012)
+
+        assert_frame_equal(expected_df, actual_df)

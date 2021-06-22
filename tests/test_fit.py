@@ -10,9 +10,14 @@ from sklearn.metrics import mean_squared_error
 
 from darkgreybox.base_model import DarkGreyModel
 from darkgreybox.fit import (
-    apply_prefit_filter, darkgreyfit, get_ic_params,
-    map_ic_params, predict_model, predict_models,
-    reduce_results_df, train_model, train_models
+    darkgreyfit,
+    get_ic_params,
+    map_ic_params,
+    predict_model,
+    predict_models,
+    reduce_results_df,
+    train_model,
+    train_models
 )
 from darkgreybox.models import Ti
 
@@ -638,24 +643,6 @@ class FitTest(unittest.TestCase):
         })
 
         actual_df = reduce_results_df(df)
-
-        assert_frame_equal(expected_df, actual_df)
-
-    def test__apply_prefit_filter(self):
-
-        df = pd.DataFrame(data={
-            'value': [0, 0, 0, 10, 20, 30, 40, 50],
-            'error': [np.nan, -np.inf, np.inf, 2.0000011, 2.0000012, 2.000002, 1, 3],
-            'time': [0, 0, 0, 2, 1, 3, 4, 5]
-        })
-
-        expected_df = pd.DataFrame(data={
-            'value': [10, 40],
-            'error': [2.0000011, 1],
-            'time': [2, 4]
-        })
-
-        actual_df = apply_prefit_filter(df, prefit_filter=lambda x: abs(x) < 2.0000012)
 
         assert_frame_equal(expected_df, actual_df)
 
