@@ -1,9 +1,9 @@
+import unittest
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import unittest
-
-from darkgreybox.models import Ti, TiTe, TiTh, TiTeTh, TiTeThRia
+from darkgreybox.models import Ti, TiTe, TiTeTh, TiTeThRia, TiTh
 
 
 class TiTest(unittest.TestCase):
@@ -15,6 +15,8 @@ class TiTest(unittest.TestCase):
             'Ria': {'value': 4},
             'Ci': {'value': 0.25},
         }
+
+        y = np.array([10, 10, 20])
 
         X = {
             'Ta': np.array([10, 10, 10]),

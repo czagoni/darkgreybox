@@ -1,6 +1,7 @@
 from abc import ABC
-from lmfit import minimize, Parameters
 from copy import deepcopy
+
+from lmfit import Parameters, minimize
 
 from darkgreybox import logger
 

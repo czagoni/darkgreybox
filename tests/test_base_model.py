@@ -1,10 +1,9 @@
+import unittest
+
 import numpy as np
 from lmfit import Parameters
 
-import unittest
-
-from darkgreybox.base_model import (DarkGreyModel,
-                                    DarkGreyModelResult)
+from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 
 
 class DGMTest(DarkGreyModel):

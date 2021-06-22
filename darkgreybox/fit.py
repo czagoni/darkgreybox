@@ -1,7 +1,8 @@
-import numpy as np
-import pandas as pd
 import copy
 from timeit import default_timer as timer
+
+import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 
 from darkgreybox import logger
@@ -54,40 +55,46 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
 
     """
 
-    prefit_df = train_models(models=models,
-                             X_train=X_train,
-                             y_train=y_train,
-                             splits=prefit_splits,
-                             error_metric=error_metric,
-                             method=method,
-                             obj_func=obj_func,
-                             n_jobs=n_jobs,
-                             verbose=verbose)
+    prefit_df = train_models(
+        models=models,
+        X_train=X_train,
+        y_train=y_train,
+        splits=prefit_splits,
+        error_metric=error_metric,
+        method=method,
+        obj_func=obj_func,
+        n_jobs=n_jobs,
+        verbose=verbose
+    )
 
     if prefit_filter is not None:
         prefit_df = apply_prefit_filter(prefit_df, prefit_filter)
 
-    train_df = train_models(models=prefit_df['model'].tolist(),
-                            X_train=X_train,
-                            y_train=y_train,
-                            splits=None,
-                            error_metric=error_metric,
-                            method=method,
-                            obj_func=obj_func,
-                            n_jobs=n_jobs,
-                            verbose=verbose)
+    train_df = train_models(
+        models=prefit_df['model'].tolist(),
+        X_train=X_train,
+        y_train=y_train,
+        splits=None,
+        error_metric=error_metric,
+        method=method,
+        obj_func=obj_func,
+        n_jobs=n_jobs,
+        verbose=verbose
+    )
 
     if reduce_train_results:
         train_df = reduce_results_df(train_df)
 
-    test_df = predict_models(models=train_df['model'].tolist(),
-                             X_test=X_test,
-                             y_test=y_test,
-                             ic_params_map=ic_params_map,
-                             error_metric=error_metric,
-                             train_results=train_df['model_result'].tolist(),
-                             n_jobs=n_jobs,
-                             verbose=verbose)
+    test_df = predict_models(
+        models=train_df['model'].tolist(),
+        X_test=X_test,
+        y_test=y_test,
+        ic_params_map=ic_params_map,
+        error_metric=error_metric,
+        train_results=train_df['model_result'].tolist(),
+        n_jobs=n_jobs,
+        verbose=verbose
+    )
 
     return pd.concat([train_df, test_df], keys=['train', 'test'], axis=1)
 
@@ -189,31 +196,38 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj
     model = copy.deepcopy(base_model)
 
     try:
-        model = model.fit(X=X_train.to_dict(orient='list'),
-                          y=y_train.values,
-                          method=method,
-                          ic_params=get_ic_params(model, X_train),
-                          obj_func=obj_func)
+        model.fit(
+            X=X_train.to_dict(orient='list'),
+            y=y_train.values,
+            method=method,
+            ic_params=get_ic_params(model, X_train),
+            obj_func=obj_func
+        )
+
     except ValueError:
         end = timer()
-        return pd.DataFrame({'start_date': [X_train.index[0]],
-                             'end_date': [X_train.index[-1]],
-                             'model': [np.NaN],
-                             'model_result': [np.NaN],
-                             'time': [end - start],
-                             'method': [method],
-                             'error': [np.NaN]})
+        return pd.DataFrame({
+            'start_date': [X_train.index[0]],
+            'end_date': [X_train.index[-1]],
+            'model': [np.NaN],
+            'model_result': [np.NaN],
+            'time': [end - start],
+            'method': [method],
+            'error': [np.NaN]
+        })
 
-    model_result = model.predict(X_train)
+    model_result = model.predict(X_train.to_dict(orient='list'))
     end = timer()
 
-    return pd.DataFrame({'start_date': [X_train.index[0]],
-                         'end_date': [X_train.index[-1]],
-                         'model': [model],
-                         'model_result': [model_result],
-                         'time': [end - start],
-                         'method': [method],
-                         'error': [error_metric(y_train.values, model_result.Z)]})
+    return pd.DataFrame({
+        'start_date': [X_train.index[0]],
+        'end_date': [X_train.index[-1]],
+        'model': [model],
+        'model_result': [model_result],
+        'time': [end - start],
+        'method': [method],
+        'error': [error_metric(y_train.values, model_result.Z)]
+    })
 
 
 def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results,
@@ -353,11 +367,14 @@ def reduce_results_df(df, decimals=6):
               .reset_index(drop=True))
 
 
-def apply_prefit_filter(prefit_df, prefit_filter):
+def apply_prefit_filter(prefit_df, prefit_filter=None):
     """
     Applies the prefit filter to the prefit dataframe
     """
-    return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
+    if prefit_filter is None:
+        return prefit_df
+    else:
+        return prefit_df[prefit_filter(prefit_df['error'])].reset_index(drop=True)
 
 
 def map_ic_params(ic_params_map, model, X_test, y_test, train_result):
