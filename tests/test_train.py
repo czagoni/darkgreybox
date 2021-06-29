@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Callable, Optional, cast
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose
 
 from pandas.testing import assert_frame_equal
 
+from darkgreybox.base_model import DarkGreyModel
 from darkgreybox.models import Ti
 from darkgreybox.train import (
     get_ic_params,
@@ -40,7 +41,7 @@ params = {
 }
 
 
-def error_metric(y, Z):
+def error_metric(y: np.ndarray, Z: np.ndarray) -> float:
     return np.sum(y - Z)
 
 
@@ -333,7 +334,15 @@ class TrainTest(unittest.TestCase):
                 assert_frame_equal(expected_df, actual_df)
 
 
-def mock_train_model_side_effect(base_model, X_train, y_train, error_metric, method, obj_func):
+def mock_train_model_side_effect(
+    base_model: DarkGreyModel,
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    error_metric: Callable,
+    method: str = 'nelder',
+    obj_func: Optional[Callable] = None,
+) -> pd.DataFrame:
+
     return pd.DataFrame({
         'start_date': [X_train.index[0]],
         'end_date': [X_train.index[-1]],

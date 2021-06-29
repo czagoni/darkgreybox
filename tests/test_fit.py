@@ -9,7 +9,7 @@ from darkgreybox.fit import darkgreyfit
 from darkgreybox.models import Ti
 
 
-def error_metric(y, Z):
+def error_metric(y: np.ndarray, Z: np.ndarray) -> float:
     return np.sum(y - Z)
 
 
@@ -82,6 +82,7 @@ class DarkGreyFitTest(unittest.TestCase):
             ic_params_map=ic_params_map,
             error_metric=error_metric,
             prefit_splits=prefit_splits,
+            reduce_train_results=True,
         )
 
         # assert on the returned dataframe being sane

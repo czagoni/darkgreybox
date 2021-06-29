@@ -1,13 +1,13 @@
 import copy
-from darkgreybox.base_model import DarkGreyModel
 from timeit import default_timer as timer
-from typing import Any, Callable, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
 from darkgreybox import logger
+from darkgreybox.base_model import DarkGreyModel
 
 
 def train_models(
@@ -19,8 +19,8 @@ def train_models(
     method: str = 'nelder',
     obj_func: Optional[Callable] = None,
     reduce_train_results: bool = False,
-    n_jobs: Optional[int] = -1,
-    verbose: Optional[int] = 10
+    n_jobs: int = -1,
+    verbose: int = 10
 ) -> pd.DataFrame:
     """
     Trains the `models` for the given `X_train` and `y_train` training data
@@ -174,7 +174,7 @@ def train_model(
     })
 
 
-def get_ic_params(model, X_train):
+def get_ic_params(model: DarkGreyModel, X_train: pd.DataFrame) -> Dict:
     """
     Returns the initial condition parameters of a model from the training data
 
