@@ -13,12 +13,10 @@ from darkgreybox.prefit import prefit_models, apply_prefit_filter
 train_start = dt.datetime(2021, 1, 1, 1, 0)
 train_end = dt.datetime(2021, 1, 1, 6, 0)
 
-rec_duration = 1
-
 y_train = pd.Series([10, 10, 20, 20, 20, 30])
 
 X_train = pd.DataFrame(
-    index=pd.date_range(train_start, train_end, freq=f'{rec_duration}H'),
+    index=pd.date_range(train_start, train_end, freq='1H'),
     data={
         'Ta': [10, 10, 10, 20, 20, 20],
         'Ph': [0, 10, 0, 0, 10, 0],

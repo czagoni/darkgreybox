@@ -1,5 +1,7 @@
 import copy
+from darkgreybox.base_model import DarkGreyModel
 from timeit import default_timer as timer
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -77,9 +79,16 @@ def train_models(models, X_train, y_train, error_metric,
     return df
 
 
-def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj_func=None):
+def train_model(
+    base_model: DarkGreyModel,
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    error_metric: Callable,
+    method: str = 'nelder',
+    obj_func: Optional[Callable] = None,
+) -> pd.DataFrame:
     """
-    Trains a copy of `basemodel` for the given `X_train` and `y_train` training data
+    Trains a copy of `base_model` for the given `X_train` and `y_train` training data
     using `method`.
 
     Params:
@@ -89,12 +98,12 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj
             A pandas DataFrame of the training input data X
         y_train: `pandas.Series`
             A pandas Series of the training input data y
-        error_metric: function
+        error_metric: Callable
             An error metric function that confirms to the `sklearn.metrics` interface
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
-        obj_func: function
+        obj_func: Optional[Callable]
             The objective function to minimise during the fitting
 
     Returns:
@@ -104,10 +113,16 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj
     start = timer()
     model = copy.deepcopy(base_model)
 
+    start_date = X_train.index[0]
+    end_date = X_train.index[-1]
+
+    X = X_train.to_dict(orient='list')
+    y = y_train.values
+
     try:
         model.fit(
-            X=X_train.to_dict(orient='list'),
-            y=y_train.values,
+            X,
+            y,
             method=method,
             ic_params=get_ic_params(model, X_train),
             obj_func=obj_func
@@ -116,8 +131,8 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj
     except ValueError:
         end = timer()
         return pd.DataFrame({
-            'start_date': [X_train.index[0]],
-            'end_date': [X_train.index[-1]],
+            'start_date': [start_date],
+            'end_date': [end_date],
             'model': [np.NaN],
             'model_result': [np.NaN],
             'time': [end - start],
@@ -125,17 +140,17 @@ def train_model(base_model, X_train, y_train, error_metric, method='nelder', obj
             'error': [np.NaN]
         })
 
-    model_result = model.predict(X_train.to_dict(orient='list'))
+    model_result = model.predict(X)
     end = timer()
 
     return pd.DataFrame({
-        'start_date': [X_train.index[0]],
-        'end_date': [X_train.index[-1]],
+        'start_date': [start_date],
+        'end_date': [end_date],
         'model': [model],
         'model_result': [model_result],
         'time': [end - start],
         'method': [method],
-        'error': [error_metric(y_train.values, model_result.Z)]
+        'error': [error_metric(y, model_result.Z)]
     })
 
 
