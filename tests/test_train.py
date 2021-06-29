@@ -12,6 +12,7 @@ from pandas.testing import assert_frame_equal
 from darkgreybox.models import Ti
 from darkgreybox.train import (
     get_ic_params,
+    reduce_results_df,
     train_model,
     train_models
 )
@@ -42,7 +43,7 @@ params = {
 class TrainTest(unittest.TestCase):
 
     @patch('darkgreybox.train.train_model')
-    def test__train_models__not_parallel_splits_none(self, mock_train_model):
+    def test__train_models__not_parallel_without_splits__returns_correct_dataframe(self, mock_train_model):
 
         mock_train_model.side_effect = mock_train_model_side_effect
 
@@ -73,7 +74,39 @@ class TrainTest(unittest.TestCase):
         assert_frame_equal(expected_df, actual_df)
 
     @patch('darkgreybox.train.train_model')
-    def test__train_models__not_parallel(self, mock_train_model):
+    def test__train_models__not_parallel_with_reduce_results_true__returns_correct_dataframe(self, mock_train_model):
+
+        mock_train_model.side_effect = mock_train_model_side_effect
+
+        models = [MagicMock(), MagicMock()]
+        error_metric = MagicMock()
+
+        expected_df = pd.DataFrame({
+            'start_date': [train_start],
+            'end_date': [train_end],
+            'model': [models[0]],
+            'model_result': ['model_result'],
+            'time': [0.0],
+            'method': ['nelder'],
+            'error': [0.0]
+        })
+
+        actual_df = train_models(
+            models=models,
+            X_train=X_train,
+            y_train=y_train,
+            error_metric=error_metric,
+            splits=None,
+            method='nelder',
+            reduce_train_results=True,
+            n_jobs=1,
+            verbose=10
+        )
+
+        assert_frame_equal(expected_df, actual_df)
+
+    @patch('darkgreybox.train.train_model')
+    def test__train_models__not_parallel_with_splits__returns_correct_dataframe(self, mock_train_model):
 
         mock_train_model.side_effect = mock_train_model_side_effect
 
@@ -199,7 +232,7 @@ class TrainTest(unittest.TestCase):
         self.assertEqual(mock_model.fit.call_args.kwargs['method'], mock_method)
         self.assertEqual(mock_model.fit.call_args.kwargs['obj_func'], mock_obj_func)
 
-    def test__get_ic_params(self):
+    def test__get_ic_params__returns_correct_ic_params(self):
 
         X_train = pd.DataFrame({
             'A0': [10, 20],
@@ -209,12 +242,91 @@ class TrainTest(unittest.TestCase):
         })
 
         model = MagicMock()
-        model.params = {'A0': 0, 'B': 1, 'C0': 2, 'D': 3}
 
-        expected = {'A0': 10, 'C0': 50}
-        actual = get_ic_params(model, X_train)
+        for (model_params, expected_ic_params) in [
+            ({}, {}),
+            ({'B': 'value', }, {}),
+            ({'B': 'value', 'D': 'value'}, {}),
+            ({'A0': 'value'}, {'A0': 10}),
+            ({'A0': 'value', 'B': 'value'}, {'A0': 10}),
+            ({'A0': 'value', 'B': 'value', 'C0': 2, }, {'A0': 10, 'C0': 50}),
+        ]:
+            with self.subTest(model_params=model_params, expected_ic_params=expected_ic_params):
+                model.params = model_params
+                actual_ic_params = get_ic_params(model, X_train)
+                self.assertEqual(expected_ic_params, actual_ic_params)
 
-        self.assertEqual(expected, actual)
+    def test__get_ic_params__raises_keyerror_for_param_with_non_existent_field(self):
+
+        X_train = pd.DataFrame({
+            'A0': [10, 20],
+            'B': [30, 40],
+            'C0': [50, 60],
+            'D': [70, 80]
+        })
+
+        model = MagicMock()
+        model.params = {'NonExistentField0': 'value'}
+
+        with self.assertRaisesRegex(
+            KeyError,
+            'Initial condition key NonExistentField0 does not have corresponding X_train field'
+        ):
+            get_ic_params(model, X_train)
+
+    def test__reduce_results_df(self):
+
+        for (desc, input_df, expected_df) in [
+            (
+                'does nothing when no duplicates',
+                pd.DataFrame(data={'value': [0.0, 1.0], 'error': [0.0, 1.0], 'time': [0.0, 1.0]}),
+                pd.DataFrame(data={'value': [0.0, 1.0], 'error': [0.0, 1.0], 'time': [0.0, 1.0]}),
+            ),
+            (
+                'removes exact duplicates',
+                pd.DataFrame(data={'value': [0.0, 0.0], 'error': [0.0, 0.0], 'time': [0.0, 0.0]}),
+                pd.DataFrame(data={'value': [0.0], 'error': [0.0], 'time': [0.0]}),
+            ),
+            (
+                'drops records with nan and inf/-inf records',
+                pd.DataFrame(data={
+                    'value': [0.0, np.nan, np.inf, -np.inf],
+                    'error': [0.0, 1.0, 1.0, 1.0],
+                    'time': [0.0, 1.0, 1.0, 1.0]
+                }),
+                pd.DataFrame(data={'value': [0.0], 'error': [0.0], 'time': [0.0]}),
+            ),
+            (
+                'rounds errors to specified decimal point',
+                pd.DataFrame(data={
+                    'value': [0.0, 0.0, np.nan, np.inf, -np.inf],
+                    'error': [0.0000011, 0.0000001, 1.0, 1.0, 1.0],
+                    'time': [0.0, 1.0, 1.0, 1.0, 1.0]
+                }),
+                pd.DataFrame(data={'value': [0.0, 0.0], 'error': [0.0, 0.000001], 'time': [1.0, 0.0]}),
+            ),
+            (
+                'removes duplicates and keeps first record in ascending order based on time field',
+                pd.DataFrame(data={
+                    'value': [0.0, 0.0, np.nan, np.inf, -np.inf],
+                    'error': [0.0000011, 0.0000009, 1.0, 1.0, 1.0],
+                    'time': [1.0, 0.0, 1.0, 1.0, 1.0]
+                }),
+                pd.DataFrame(data={'value': [0.0], 'error': [0.000001], 'time': [0.0]}),
+            ),
+            (
+                'sort records based on errors after duplicates removed',
+                pd.DataFrame(data={
+                    'value': [0.0, 0.0, 1.0, np.nan, np.inf, -np.inf],
+                    'error': [0.0000011, 0.0000009, 0.0, 0.0, 1.0, 1.0],
+                    'time': [1.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+                }),
+                pd.DataFrame(data={'value': [1.0, 0.0], 'error': [0.0, 0.000001], 'time': [1.0, 0.0]}),
+            ),
+        ]:
+            with self.subTest(desc, input_df=input_df, expected_df=expected_df):
+                actual_df = reduce_results_df(input_df)
+                assert_frame_equal(expected_df, actual_df)
 
 
 def error_metric(y, Z):

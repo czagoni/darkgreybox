@@ -1,8 +1,7 @@
-from darkgreybox.predict import predict_models
 
-import numpy as np
 import pandas as pd
 
+from darkgreybox.predict import predict_models
 from darkgreybox.prefit import prefit_models
 from darkgreybox.train import train_models
 
@@ -74,12 +73,10 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
         error_metric=error_metric,
         method=method,
         obj_func=obj_func,
+        reduce_train_results=reduce_train_results,
         n_jobs=n_jobs,
         verbose=verbose
     )
-
-    if reduce_train_results:
-        train_df = reduce_results_df(train_df)
 
     test_df = predict_models(
         models=train_df['model'].tolist(),
@@ -93,26 +90,3 @@ def darkgreyfit(models, X_train, y_train, X_test, y_test, ic_params_map, error_m
     )
 
     return pd.concat([train_df, test_df], keys=['train', 'test'], axis=1)
-
-
-def reduce_results_df(df, decimals=6):
-    """
-    Reduces `df` dataframe by removing nan and duplicate records
-
-    Params:
-        df: `pandas.DataFrame`
-            The dataframe to be reduced / cleaned
-        decimal: int
-            The number of decimal points for the float comparison when removing duplicates
-
-    Returns :
-        the reduced / cleaned `pandas.DataFrame`
-    """
-
-    return (df.replace([-np.inf, np.inf], np.nan)
-              .dropna()
-              .round({'error': decimals})
-              .sort_values('time')
-              .drop_duplicates(subset=['error'], keep='first')
-              .sort_values('error')
-              .reset_index(drop=True))

@@ -18,6 +18,7 @@ def train_models(
     splits: Optional[List] = None,
     method: str = 'nelder',
     obj_func: Optional[Callable] = None,
+    reduce_train_results: bool = False,
     n_jobs: Optional[int] = -1,
     verbose: Optional[int] = 10
 ) -> pd.DataFrame:
@@ -77,22 +78,25 @@ def train_models(
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
-            df = pd.concat(
+            df = cast(pd.DataFrame, pd.concat(
                 cast(pd. DataFrame, p(delayed(train_model)(
                     model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
                     for _, idx in splits or [(None, range(len(X_train)))] for model in models
                 )),
                 ignore_index=True
-            )
+            ))
 
     else:
-        df = pd.concat([
+        df = cast(pd.DataFrame, pd.concat([
             train_model(model, cast(pd.DataFrame, X_train.iloc[idx]), y_train.iloc[idx], error_metric, method, obj_func)
             for _, idx in splits or [(None, range(len(X_train)))] for model in models
         ],
-            ignore_index=True)
+            ignore_index=True))
 
-    return cast(pd.DataFrame, df)
+    if reduce_train_results:
+        return reduce_results_df(df)
+    else:
+        return df
 
 
 def train_model(
@@ -190,6 +194,34 @@ def get_ic_params(model, X_train):
     ic_params = {}
     for key in model.params:
         if '0' in key:
-            ic_params[key] = X_train.iloc[0][key]
+            if key in X_train:
+                ic_params[key] = X_train.iloc[0][key]
+            else:
+                raise KeyError(f'Initial condition key {key} does not have corresponding X_train field')
 
     return ic_params
+
+
+def reduce_results_df(df: pd.DataFrame, decimals: int = 6) -> pd.DataFrame:
+    """
+    Reduces `df` dataframe by removing nan and duplicate records
+
+    Params:
+        df: `pd.DataFrame`
+            The dataframe to be reduced / cleaned
+        decimal: int
+            The number of decimal points for the float comparison when removing duplicates
+
+    Returns :
+        the reduced / cleaned `pd.DataFrame`
+    """
+
+    return (
+        df.replace([-np.inf, np.inf], np.nan)
+        .dropna()
+        .round({'error': decimals})
+        .sort_values('time')
+        .drop_duplicates(subset=['error'], keep='first')
+        .sort_values('error')
+        .reset_index(drop=True)
+    )

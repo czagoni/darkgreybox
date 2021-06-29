@@ -1,16 +1,11 @@
 import datetime as dt
 import unittest
 
-import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
-from pandas.testing import assert_frame_equal
 from sklearn.metrics import mean_squared_error  # TODO: remove this dep
 
-from darkgreybox.fit import (
-    darkgreyfit,
-    reduce_results_df,
-)
+from darkgreybox.fit import darkgreyfit
 from darkgreybox.models import Ti
 
 
@@ -18,7 +13,7 @@ def rmse(*args, **kwargs):
     return mean_squared_error(*args, **kwargs) ** 0.5
 
 
-class TwoDarkGreyFitTest(unittest.TestCase):
+class DarkGreyFitTest(unittest.TestCase):
 
     def test__darkgreyfit__returns_correct_dataframe__when_prefit_splits_specified(self):
 
@@ -105,46 +100,3 @@ class TwoDarkGreyFitTest(unittest.TestCase):
 
         assert_allclose(y_train.values, actual_df[('train', 'model_result')].iloc[0].Z, atol=0.01)
         assert_allclose(y_test.values, actual_df[('test', 'model_result')].iloc[0].Z, atol=0.01)
-
-
-class FitTest(unittest.TestCase):
-
-    def setUp(self):
-
-        self.X_train = pd.DataFrame({
-            'A0': [10, 20],
-            'B': [30, 40],
-            'C0': [50, 60],
-            'D': [70, 80]
-        })
-
-        self.y_train = pd.Series([100, 110])
-        self.Z_train = np.array([120, 130])
-
-        self.X_test = pd.DataFrame({
-            'A0': [10, 20],
-            'B': [30, 40],
-            'C0': [50, 60],
-            'D': [70, 80]
-        })
-
-        self.y_test = pd.Series([100, 110])
-        self.Z_test = np.array([120, 130])
-
-    def test__reduce_results_df(self):
-
-        df = pd.DataFrame(data={
-            'value': [0, 0, 0, 10, 20, 30, 40, 50],
-            'error': [np.nan, -np.inf, np.inf, 2.0000011, 2.0000012, 2.000002, 1, 3],
-            'time': [0, 0, 0, 2, 1, 3, 4, 5]
-        })
-
-        expected_df = pd.DataFrame(data={
-            'value': [40, 20, 30, 50],
-            'error': [1, 2.0000012, 2.000002, 3],
-            'time': [4, 1, 3, 5]
-        })
-
-        actual_df = reduce_results_df(df)
-
-        assert_frame_equal(expected_df, actual_df)
