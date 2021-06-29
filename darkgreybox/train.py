@@ -1,7 +1,7 @@
 import copy
 from darkgreybox.base_model import DarkGreyModel
 from timeit import default_timer as timer
-from typing import Callable, Optional
+from typing import Any, Callable, List, Optional, cast
 
 import numpy as np
 import pandas as pd
@@ -10,8 +10,17 @@ from joblib import Parallel, delayed
 from darkgreybox import logger
 
 
-def train_models(models, X_train, y_train, error_metric,
-                 splits=None, method='nelder', obj_func=None, n_jobs=-1, verbose=10):
+def train_models(
+    models: List[Any],
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    error_metric: Callable,
+    splits: Optional[List] = None,
+    method: str = 'nelder',
+    obj_func: Optional[Callable] = None,
+    n_jobs: Optional[int] = -1,
+    verbose: Optional[int] = 10
+) -> pd.DataFrame:
     """
     Trains the `models` for the given `X_train` and `y_train` training data
     for `splits` using `method`.
@@ -23,23 +32,23 @@ def train_models(models, X_train, y_train, error_metric,
             A pandas DataFrame of the training input data X
         y_train: `pandas.Series`
             A pandas Series of the training input data y
-        error_metric: function
+        error_metric: Callable
             An error metric function that confirms to the `sklearn.metrics` interface
-        splits: list
+        splits: Optional[List]
             A list of training data indices specifying sub-sections of `X_train` and `y_train`
             for the models to be trained on
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
-        obj_func: function
+        obj_func: Optional[Callable]
             The objective function to minimise during the fitting
-        n_jobs: int
+        n_jobs: Optional[int]
             The number of parallel jobs to be run as described by `joblib.Parallel`
-        verbose: int
+        verbose: Optional[int]
             The degree of verbosity as described by `joblib.Parallel`
 
     Returns:
-        `pandas.DataFrame` with a record for each model's result for each split
+        `pd.DataFrame` with a record for each model's result for each split
 
     Example:
     ~~~~
@@ -51,14 +60,16 @@ def train_models(models, X_train, y_train, error_metric,
     from darkgreybox.fit import train_models
 
 
-    prefit_df = train_models(models=[TiTe(train_params, rec_duration=1)],
-                             X_train=X_train,
-                             y_train=y_train,
-                             splits=KFold(n_splits=int(len(X_train) / 24), shuffle=False).split(X_train),
-                             error_metric=mean_squared_error,
-                             method='nelder',
-                             n_jobs=-1,
-                             verbose=10)
+    prefit_df = train_models(
+        models=[TiTe(train_params, rec_duration=1)],
+        X_train=X_train,
+        y_train=y_train,
+        splits=KFold(n_splits=int(len(X_train) / 24), shuffle=False).split(X_train),
+        error_metric=mean_squared_error,
+        method='nelder',
+        n_jobs=-1,
+        verbose=10
+    )
     ~~~~
     """
 
@@ -66,17 +77,22 @@ def train_models(models, X_train, y_train, error_metric,
 
     if n_jobs != 1:
         with Parallel(n_jobs=n_jobs, verbose=verbose) as p:
-            df = pd.concat(p(delayed(train_model)
-                             (model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
-                             for _, idx in splits or [(None, range(len(X_train)))] for model in models),
-                           ignore_index=True)
+            df = pd.concat(
+                cast(pd. DataFrame, p(delayed(train_model)(
+                    model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
+                    for _, idx in splits or [(None, range(len(X_train)))] for model in models
+                )),
+                ignore_index=True
+            )
 
     else:
-        df = pd.concat([train_model(model, X_train.iloc[idx], y_train.iloc[idx], error_metric, method, obj_func)
-                        for _, idx in splits or [(None, range(len(X_train)))] for model in models],
-                       ignore_index=True)
+        df = pd.concat([
+            train_model(model, cast(pd.DataFrame, X_train.iloc[idx]), y_train.iloc[idx], error_metric, method, obj_func)
+            for _, idx in splits or [(None, range(len(X_train)))] for model in models
+        ],
+            ignore_index=True)
 
-    return df
+    return cast(pd.DataFrame, df)
 
 
 def train_model(
@@ -107,7 +123,7 @@ def train_model(
             The objective function to minimise during the fitting
 
     Returns:
-        `pandas.DataFrame` with a single record for the fit model's result
+        `pd.DataFrame` with a single record for the fit model's result
     """
 
     start = timer()
