@@ -151,24 +151,67 @@ class FitTest(unittest.TestCase):
 
         assert_frame_equal(expected_df, actual_df)
 
-    def test__map_ic_params(self):
+    def test__map_ic_params__returns_correct_ic_params(self):
 
-        train_result = [57]
+        X_test = pd.DataFrame({
+            'A0': [10, 20],
+            'B': [30, 40],
+        })
 
-        ic_params_map = {
-            'A0': lambda X_test, y_test, train_result: y_test.iloc[0],
-            'B0': lambda X_test, y_test, train_result: y_test.iloc[0],
-            'C0': lambda X_test, y_test, train_result: X_test['C0'].iloc[0],
-            'D': lambda X_test, y_test, train_result: train_result[0],
-        }
+        y_test = pd.Series([1, 2])
+
+        train_result = MagicMock()
+        train_result.Te = [100, 200]
 
         model = MagicMock()
-        model.params = {'A0': 0, 'B': 1, 'C0': 2, 'D': 3}
+        model.params = {
+            'A0': 'value', 'B0': 'value', 'C0': 'value'
+        }
 
-        expected = {'A0': 100, 'C0': 50, 'D': 57}
-        actual = map_ic_params(ic_params_map, model, self.X_test, self.y_test, train_result)
+        for (ic_params_map, expected_ic_params) in [
+            ({}, {}),
+            ({'A0': lambda X_test, y_test, train_result: X_test['A0'].iloc[0]}, {'A0': 10}),
+            ({'B0': lambda X_test, y_test, train_result: y_test.iloc[0]}, {'B0': 1}),
+            ({'C0': lambda X_test, y_test, train_result: train_result.Te[0]}, {'C0': 100}),
+            ({
+                'A0': lambda X_test, y_test, train_result: X_test['A0'].iloc[0],
+                'B0': lambda X_test, y_test, train_result: y_test.iloc[0],
+                'C0': lambda X_test, y_test, train_result: train_result.Te[0]
+            },
+                {
+                'A0': 10,
+                'B0': 1,
+                'C0': 100
+            }),
+        ]:
+            with self.subTest(ic_params_map=ic_params_map, expected_ic_params=expected_ic_params):
+                actual_ic_params = map_ic_params(ic_params_map, model, X_test, y_test, train_result)
+                self.assertEqual(expected_ic_params, actual_ic_params)
 
-        self.assertEqual(expected, actual)
+    def test__get_ic_params__raises_keyerror_for_param_with_non_existent_field(self):
+
+        X_test = pd.DataFrame({
+            'A0': [10, 20],
+            'B': [30, 40],
+        })
+
+        y_test = pd.Series([1, 2])
+
+        train_result = MagicMock()
+        train_result.Te = [100, 200]
+
+        model = MagicMock()
+        model.params = {
+            'A0': 'value', 'B0': 'value', 'C0': 'value'
+        }
+
+        ic_params_map = {'NonExistentModelParamKey': lambda X_test, y_test, train_result: X_test['A0'].iloc[0]}
+
+        with self.assertRaisesRegex(
+            KeyError,
+            'Initial condition map key NonExistentModelParamKey does not have corresponding model parameter'
+        ):
+            map_ic_params(ic_params_map, model, X_test, y_test, train_result)
 
     def mock_predict_model_side_effect(self, model, X_test, y_test, ic_params_map, error_metric, train_result):
         return pd.DataFrame({

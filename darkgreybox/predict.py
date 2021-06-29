@@ -1,11 +1,12 @@
 from timeit import default_timer as timer
+from typing import Dict
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
 from darkgreybox import logger
-from darkgreybox.base_model import DarkGreyModel
+from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 
 
 def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results,
@@ -122,18 +123,24 @@ def predict_model(model, X_test, y_test, ic_params_map, error_metric, train_resu
         })
 
 
-def map_ic_params(ic_params_map, model, X_test, y_test, train_result):
+def map_ic_params(
+    ic_params_map: Dict,
+    model: DarkGreyModel,
+    X_test: pd.DataFrame,
+    y_test: pd.Series,
+    train_result: DarkGreyModelResult
+) -> Dict:
     """
     Maps the test initial condition parameters according to `ic_params_map`
 
     Parameters:
-        ic_params_map: dict
+        ic_params_map: Dict
             A dictionary of mapping functions that return the initial condition parameters
         model: `model.DarkGreyModel`
             model used for the prediction
-        X_test: `pandas.DataFrame`
+        X_test: `pd.DataFrame`
             A pandas DataFrame of the test input data X
-        y_test: `pandas.Series`
+        y_test: `pd.Series`
             A pandas Series of the test input data y
         train_results: `model.DarkGreyModelResult`
             model result object for training data
@@ -159,5 +166,7 @@ def map_ic_params(ic_params_map, model, X_test, y_test, train_result):
     for key in ic_params_map:
         if key in model.params:
             ic_params[key] = ic_params_map[key](X_test, y_test, train_result)
+        else:
+            raise KeyError(f'Initial condition map key {key} does not have corresponding model parameter')
 
     return ic_params
