@@ -1,16 +1,16 @@
 import datetime as dt
 import unittest
 
+import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
-from sklearn.metrics import mean_squared_error  # TODO: remove this dep
 
 from darkgreybox.fit import darkgreyfit
 from darkgreybox.models import Ti
 
 
-def rmse(*args, **kwargs):
-    return mean_squared_error(*args, **kwargs) ** 0.5
+def error_metric(y, Z):
+    return np.sum(y - Z)
 
 
 class DarkGreyFitTest(unittest.TestCase):
@@ -54,8 +54,6 @@ class DarkGreyFitTest(unittest.TestCase):
         ic_params_map = {
             'Ti0': lambda X_test, y_test, train_result: y_test.iloc[0],
         }
-
-        error_metric = rmse
 
         prefit_splits = [([], [0, 1, 2]), ([], [3, 4, 5])]
 

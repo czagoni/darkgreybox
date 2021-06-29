@@ -40,6 +40,10 @@ params = {
 }
 
 
+def error_metric(y, Z):
+    return np.sum(y - Z)
+
+
 class TrainTest(unittest.TestCase):
 
     @patch('darkgreybox.train.train_model')
@@ -327,10 +331,6 @@ class TrainTest(unittest.TestCase):
             with self.subTest(desc, input_df=input_df, expected_df=expected_df):
                 actual_df = reduce_results_df(input_df)
                 assert_frame_equal(expected_df, actual_df)
-
-
-def error_metric(y, Z):
-    return np.sum(y - Z)
 
 
 def mock_train_model_side_effect(base_model, X_train, y_train, error_metric, method, obj_func):
