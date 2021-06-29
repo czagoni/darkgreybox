@@ -4,17 +4,12 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from sklearn.metrics import mean_squared_error
 
 from darkgreybox.train import (
     get_ic_params,
     train_model,
     train_models
 )
-
-
-def rmse(*args, **kwargs):
-    return mean_squared_error(*args, **kwargs) ** 0.5
 
 
 class FitTest(unittest.TestCase):
