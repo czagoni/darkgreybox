@@ -8,6 +8,8 @@ from joblib import Parallel, delayed
 from darkgreybox import logger
 from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 
+# TODO: refactor this next
+
 
 def predict_models(models, X_test, y_test, ic_params_map, error_metric, train_results,
                    n_jobs=-1, verbose=10):
