@@ -1,3 +1,4 @@
+import logging
 import logging.config
 
 
@@ -13,17 +14,22 @@ def enable_logging(level='INFO'):
         version=1,
         disable_existing_loggers=False,
         formatters={
-            'f': {'format':
-                  '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'}},
+            'f': {
+                'format':
+                '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+            }
+        },
         handlers={
-            'sh': {'class': 'logging.StreamHandler',
-                   'formatter': 'f',
-                   'stream': 'ext://sys.stdout'
-                   }},
+            'sh': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'f',
+                'stream': 'ext://sys.stdout'
+            }
+        },
         root={
             'handlers': ['sh'],
             'level': logging.getLevelName(level)
-            },
+        },
     )
     logging.config.dictConfig(logging_config)
 

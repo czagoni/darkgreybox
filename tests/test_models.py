@@ -1,9 +1,9 @@
+import unittest
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import unittest
-
-from darkgreybox.models import Ti, TiTe, TiTh, TiTeTh, TiTeThRia
+from darkgreybox.models import Ti, TiTe, TiTeTh, TiTeThRia, TiTh
 
 
 class TiTest(unittest.TestCase):

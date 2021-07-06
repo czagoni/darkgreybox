@@ -459,6 +459,7 @@ class Ti(DarkGreyModel):
     result = Ti(y, X, params, method='nelder').fit()
     ~~~~
     '''
+
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -492,7 +493,7 @@ class Ti(DarkGreyModel):
         Ti = np.zeros(num_rec)
 
         # alias these params/X so that the differential equations look pretty
-        Ti[0] = params['Ti0']
+        Ti[0] = params['Ti0'].value
 
         Ria = params['Ria'].value
         Ci = params['Ci'].value

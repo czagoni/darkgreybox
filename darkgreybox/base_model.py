@@ -1,6 +1,10 @@
 from abc import ABC
-from lmfit import minimize, Parameters
 from copy import deepcopy
+from typing import Callable, Dict, Optional, Union
+
+from lmfit import Parameters, minimize
+from lmfit.minimizer import MinimizerResult
+import numpy as np
 
 from darkgreybox import logger
 
@@ -37,7 +41,7 @@ class DarkGreyModel(ABC):
     Abstract Base Class for DarkGrey Models
     '''
 
-    def __init__(self, params, rec_duration):
+    def __init__(self, params: Union[Parameters, Dict], rec_duration: float):
         '''
         Initialises the model instance
 
@@ -52,7 +56,7 @@ class DarkGreyModel(ABC):
             The duration of each measurement record in hours
         '''
 
-        self.result = None
+        self.result = MinimizerResult()
 
         # convert the params dict into lmfit parameters
         if isinstance(params, Parameters):
@@ -65,7 +69,14 @@ class DarkGreyModel(ABC):
         # set the number of records based on the measured variable's values
         self.rec_duration = rec_duration
 
-    def fit(self, X, y, method, ic_params=None, obj_func=None):
+    def fit(
+        self,
+        X: Dict,
+        y: np.ndarray,
+        method: str,
+        ic_params: Optional[Dict] = None,
+        obj_func: Optional[Callable] = None
+    ):
         '''
         Fits the model by minimising the objective function value
 
@@ -78,10 +89,10 @@ class DarkGreyModel(ABC):
         method : str
             Name of the fitting method to use. Valid values are described in:
             `lmfit.minimize`
-        ic_params : dict
+        ic_params : Optional[Dict]
             The initial condition parameters - if passed in these will overwrite
             the initial conditions in self.params
-        obj_func : function
+        obj_func : Optional[Callable]
             The objective function that is passed to `lmfit.minimize`/
             It must have (params, *args, **kwargs) as its method signature.
             Default: `def_obj_func`
@@ -102,16 +113,18 @@ class DarkGreyModel(ABC):
                     logger.warning(f'Key `{k}` not found in initial conditions params')
 
         # we are passing X, y to minimise as kwargs
-        self.result = minimize(obj_func or self.def_obj_func,
-                               self.params,
-                               kws={'model': self.model, 'X': X, 'y': y},
-                               method=method)
+        self.result = minimize(
+            obj_func or self.def_obj_func,
+            self.params,
+            kws={'model': self.model, 'X': X, 'y': y},
+            method=method
+        )
 
         self.params = self.result.params
 
         return self
 
-    def predict(self, X, ic_params=None):
+    def predict(self, X: Dict, ic_params: Optional[Dict] = None) -> DarkGreyModelResult:
         '''
         Generates a prediction based on the result parameters and X.
 
@@ -134,11 +147,11 @@ class DarkGreyModel(ABC):
 
         return self.model(self.params, X)
 
-    def model(self, params, X):
+    def model(self, params: Parameters, X: Dict) -> DarkGreyModelResult:
         '''
         A system of differential equations describing the thermal model
         '''
-        pass
+        ...  # pragma: no cover
 
     def lock(self):
         '''
@@ -151,7 +164,7 @@ class DarkGreyModel(ABC):
         return self
 
     @staticmethod
-    def def_obj_func(params, *args, **kwargs):
+    def def_obj_func(params: Parameters, *args, **kwargs):
         '''
         Default objective function
         Computes the residual between measured data and fitted data
