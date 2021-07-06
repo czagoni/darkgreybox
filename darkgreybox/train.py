@@ -1,6 +1,6 @@
 import copy
 from timeit import default_timer as timer
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Callable, Dict, List, Optional, cast
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ from darkgreybox.base_model import DarkGreyModel
 
 
 def train_models(
-    models: List[Any],
+    models: List[DarkGreyModel],
     X_train: pd.DataFrame,
     y_train: pd.Series,
     error_metric: Callable,
@@ -137,7 +137,7 @@ def train_model(
     end_date = X_train.index[-1]
 
     X = X_train.to_dict(orient='list')
-    y = y_train.values
+    y = cast(np.ndarray, y_train.values)
 
     try:
         model.fit(

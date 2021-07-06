@@ -1,6 +1,6 @@
 import datetime as dt
 import unittest
-from typing import cast
+from typing import Any, Callable, Dict, Union, cast
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 from numpy.testing import assert_allclose
 
-from darkgreybox.base_model import DarkGreyModelResult
+from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
 from darkgreybox.predict import (
     map_ic_params,
@@ -128,7 +128,7 @@ class PredictTest(unittest.TestCase):
 
         self.assertIsInstance(actual_df['model'].iloc[0], Ti)
 
-        assert_allclose(y_test.values, actual_df['model_result'].iloc[0].Z, atol=0.01)
+        assert_allclose(y_test.values, cast(DarkGreyModelResult, actual_df['model_result'].iloc[0]).Z, atol=0.01)
 
         self.assertEqual(1.0, actual_df['time'].iloc[0])
         self.assertAlmostEqual(0.0, cast(float, actual_df['error'].iloc[0]), places=4)
@@ -226,7 +226,14 @@ class PredictTest(unittest.TestCase):
             map_ic_params(ic_params_map, model, X_test, y_test, train_result)
 
 
-def mock_predict_model_side_effect(model, X_test, y_test, ic_params_map, error_metric, train_result):
+def mock_predict_model_side_effect(
+    model: Union[DarkGreyModel, Any],
+    X_test: pd.DataFrame,
+    y_test: pd.Series,
+    ic_params_map: Dict,
+    error_metric: Callable,
+    train_result: DarkGreyModelResult,
+) -> pd.DataFrame:
     return pd.DataFrame({
         'start_date': [test_start],
         'end_date': [test_end],

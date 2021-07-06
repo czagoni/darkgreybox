@@ -27,8 +27,10 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__init__parameters__from_dict(self):
 
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
+        params = {
+            'A0': {'value': 10},
+            'B': {'value': 0.01}
+        }
 
         m = DGMTest(params=params, rec_duration=1)
 
@@ -50,10 +52,13 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__fit(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10},
+            'B': {'value': 0.01}
+        }
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
@@ -62,10 +67,13 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__fit__min_max(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10, 'min': 2},
-                  'B': {'value': 0.01, 'max': 0.05}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10, 'min': 2},
+            'B': {'value': 0.01, 'max': 0.05}
+        }
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
@@ -74,10 +82,13 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__fit__vary(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10, 'vary': False},
-                  'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10, 'vary': False},
+            'B': {'value': 0.01, 'vary': True}
+        }
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder')
 
@@ -87,9 +98,13 @@ class DarkGreyModelTest(unittest.TestCase):
     def test__fit__ic_params(self):
 
         y = np.array([1, 2])
-        params = {'A0': {'value': 10, 'vary': False},
-                  'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
+
+        params = {
+            'A0': {'value': 10, 'vary': False},
+            'B': {'value': 0.01, 'vary': True}
+        }
+
         ic_params = {'A0': 15}
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
@@ -99,10 +114,14 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__fit__ic_params_missing_key(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10, 'vary': False},
-                  'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10, 'vary': False},
+            'B': {'value': 0.01, 'vary': True}
+        }
+
         ic_params = {'A0': 15, 'A10': 150}
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', ic_params=ic_params)
@@ -115,10 +134,13 @@ class DarkGreyModelTest(unittest.TestCase):
         def obj_func(params, *args, **kwargs):
             return ((kwargs['model'](params=params, X=kwargs['X']).Z - kwargs['y']) ** 2).ravel()
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10, 'vary': False},
-                  'B': {'value': 0.01, 'vary': True}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10, 'vary': False},
+            'B': {'value': 0.01, 'vary': True}
+        }
 
         m = DGMTest(params=params, rec_duration=1).fit(X=X, y=y, method='nelder', obj_func=obj_func)
 
@@ -127,10 +149,13 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__predict(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10},
+            'B': {'value': 0.01}
+        }
 
         actual_result = DGMTest(params=params, rec_duration=1) \
             .fit(X=X, y=y, method='nelder') \
@@ -142,10 +167,14 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__predict__ic_params(self):
 
-        y = np.array([1, 2])
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
         X = {'C': np.array([10, 20])}
+        y = np.array([1, 2])
+
+        params = {
+            'A0': {'value': 10},
+            'B': {'value': 0.01}
+        }
+
         ic_params = {'A0': 15}
 
         actual_result = DGMTest(params=params, rec_duration=1) \
@@ -158,8 +187,10 @@ class DarkGreyModelTest(unittest.TestCase):
 
     def test__lock(self):
 
-        params = {'A0': {'value': 10},
-                  'B': {'value': 0.01}}
+        params = {
+            'A0': {'value': 10},
+            'B': {'value': 0.01}
+        }
 
         m = DGMTest(params=params, rec_duration=1).lock()
 

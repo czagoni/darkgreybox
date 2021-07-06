@@ -1,6 +1,6 @@
 import datetime as dt
 import unittest
-from typing import Callable, Optional, cast
+from typing import Callable, List, Optional, cast
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -8,7 +8,7 @@ import pandas as pd
 from numpy.testing import assert_allclose
 from pandas.testing import assert_frame_equal
 
-from darkgreybox.base_model import DarkGreyModel
+from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
 from darkgreybox.train import (
     get_ic_params,
@@ -65,7 +65,7 @@ class TrainTest(unittest.TestCase):
         })
 
         actual_df = train_models(
-            models=models,
+            models=cast(List[DarkGreyModel], models),
             X_train=X_train,
             y_train=y_train,
             error_metric=error_metric,
@@ -96,7 +96,7 @@ class TrainTest(unittest.TestCase):
         })
 
         actual_df = train_models(
-            models=models,
+            models=cast(List[DarkGreyModel], models),
             X_train=X_train,
             y_train=y_train,
             error_metric=error_metric,
@@ -130,7 +130,7 @@ class TrainTest(unittest.TestCase):
         })
 
         actual_df = train_models(
-            models=models,
+            models=cast(List[DarkGreyModel], models),
             X_train=X_train,
             y_train=y_train,
             error_metric=error_metric,
@@ -184,7 +184,7 @@ class TrainTest(unittest.TestCase):
 
         self.assertIsInstance(actual_df['model'].iloc[0], Ti)
 
-        assert_allclose(y_train.values, actual_df['model_result'].iloc[0].Z, atol=0.01)
+        assert_allclose(y_train.values, cast(DarkGreyModelResult, actual_df['model_result'].iloc[0]).Z, atol=0.01)
 
         self.assertEqual(1.0, actual_df['time'].iloc[0])
         self.assertEqual(method, actual_df['method'].iloc[0])
