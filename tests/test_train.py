@@ -1,12 +1,11 @@
-from typing import Callable, Optional, cast
+import datetime as dt
 import unittest
+from typing import Callable, Optional, cast
 from unittest.mock import MagicMock, patch
 
-import datetime as dt
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
-
 from pandas.testing import assert_frame_equal
 
 from darkgreybox.base_model import DarkGreyModel
