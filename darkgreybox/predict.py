@@ -193,7 +193,5 @@ def map_ic_params(
     for key in ic_params_map:
         if key in model.params:
             ic_params[key] = ic_params_map[key](X_test, y_test, train_result)
-        else:
-            raise KeyError(f'Initial condition map key {key} does not have corresponding model parameter')
 
     return ic_params
