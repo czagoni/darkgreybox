@@ -200,31 +200,6 @@ class PredictTest(unittest.TestCase):
                 actual_ic_params = map_ic_params(ic_params_map, model, X_test, y_test, train_result)
                 self.assertEqual(expected_ic_params, actual_ic_params)
 
-    def test__map_ic_params__raises_keyerror_for_param_with_non_existent_field(self):
-
-        X_test = pd.DataFrame({
-            'A0': [10, 20],
-            'B': [30, 40],
-        })
-
-        y_test = pd.Series([1, 2])
-
-        train_result = MagicMock()
-        train_result.Te = [100, 200]
-
-        model = MagicMock()
-        model.params = {
-            'A0': 'value', 'B0': 'value', 'C0': 'value'
-        }
-
-        ic_params_map = {'NonExistentModelParamKey': lambda X_test, y_test, train_result: X_test['A0'].iloc[0]}
-
-        with self.assertRaisesRegex(
-            KeyError,
-            'Initial condition map key NonExistentModelParamKey does not have corresponding model parameter'
-        ):
-            map_ic_params(ic_params_map, model, X_test, y_test, train_result)
-
 
 def mock_predict_model_side_effect(
     model: Union[DarkGreyModel, Any],
