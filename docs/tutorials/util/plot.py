@@ -13,8 +13,8 @@ def plot(y, model_result, suptitle=''):
 
     ax[0, 0].plot(y.index, model_result.Z, label='Ti Modelled', alpha=0.75)
     ax[0, 0].plot(y, label='Ti Measured', alpha=0.75)
-    if hasattr(model_result, 'Te'):
-        ax[0, 0].plot(y.index, model_result.Te, label='Te Modelled', alpha=0.75)
+    if 'Te' in model_result.var.keys():
+        ax[0, 0].plot(y.index, model_result.var['Te'], label='Te Modelled', alpha=0.75)
     ax[0, 0].legend()
     ax[0, 0].set_ylabel('[˚C]')
     if abs(rmse) < 100:
