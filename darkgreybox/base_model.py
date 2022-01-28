@@ -2,9 +2,9 @@ from abc import ABC
 from copy import deepcopy
 from typing import Callable, Dict, Optional, Union
 
+import numpy as np
 from lmfit import Parameters, minimize
 from lmfit.minimizer import MinimizerResult
-import numpy as np
 
 from darkgreybox import logger
 

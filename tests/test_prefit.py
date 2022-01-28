@@ -1,14 +1,13 @@
+import datetime as dt
 import unittest
 from unittest.mock import MagicMock, patch
 
-import datetime as dt
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from darkgreybox.models import Ti
-from darkgreybox.prefit import prefit_models, apply_prefit_filter
-
+from darkgreybox.prefit import apply_prefit_filter, prefit_models
 
 train_start = dt.datetime(2021, 1, 1, 1, 0)
 train_end = dt.datetime(2021, 1, 1, 6, 0)

@@ -1,5 +1,6 @@
 
 from typing import Any, Callable, Dict, List, Optional
+
 import pandas as pd
 
 from darkgreybox.predict import predict_models
