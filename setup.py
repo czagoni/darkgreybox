@@ -56,9 +56,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'lmfit~=1.0.2',
-        'pandas~=1.2.3',
-        'joblib~=1.0.1'
+        'lmfit~=1.0.3',
+        'pandas~=1.4.0',
+        'joblib~=1.1.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -67,18 +67,20 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'dev': [
-            'statsmodels~=0.12.2',
+            'statsmodels~=0.13.1',
             'numdifftools~=0.9.39',
-            'scikit-learn~=0.24.1',
-            'matplotlib~=3.4.0',
+            'scikit-learn~=1.0.2',
+            'matplotlib~=3.5.1',
             'jupyter==1.0.0',
-            'notebook==6.1.5'
+            'notebook==6.4.8',
+            'autopep8==1.5.7',
+            'isort==5.10.1',
         ],
         'test': [
-            'flake8~=3.9.0',
+            'flake8~=4.0.1',
             'pytest~=6.2.2',
-            'pytest-mock~=3.5.1',
-            'pytest-cov~=2.11.1',
+            'pytest-mock~=3.7.0',
+            'pytest-cov~=3.0.0',
         ],
     },
 
