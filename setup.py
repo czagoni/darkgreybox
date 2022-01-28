@@ -1,8 +1,8 @@
-from setuptools import setup
 from os import path
 
+from setuptools import setup
 
-__VERSION__ = '0.2.1'
+__VERSION__ = '0.3.0'
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -21,6 +21,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/czagoni/darkgreybox',
+    download_url='https://github.com/czagoni/darkgreybox/archive/refs/tags/0.3.0.tar.gz',
 
     # Author details
     author='csaba zagoni',
