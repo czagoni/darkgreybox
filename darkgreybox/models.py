@@ -45,7 +45,7 @@ class TiTeThRia(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTeTh(y, X, params, method='nelder').fit()
+    model = TiTeThRia(params, rec_duration=1).fit(X, y, method='nelder')
     ~~~~
     '''
 
@@ -159,7 +159,7 @@ class TiTeTh(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTeTh(y, X, params, method='nelder').fit()
+    model = TiTeTh(params, rec_duration=1).fit(X, y, method='nelder')
     ~~~~
     '''
 
@@ -267,7 +267,7 @@ class TiTh(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTh(y, X, params, method='nelder').fit()
+    model = TiTh(params, rec_duration=1).fit(X, y, method='nelder')
     ~~~~
     '''
 
@@ -363,7 +363,7 @@ class TiTe(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = TiTe(y, X, params, method='nelder').fit()
+    model = TiTe(params, rec_duration=1).fit(X, y, method='nelder')
     ~~~~
     '''
 
@@ -456,7 +456,7 @@ class Ti(DarkGreyModel):
     }
 
     # fit using the Nelder-Mead method
-    result = Ti(y, X, params, method='nelder').fit()
+    model = Ti(params, rec_duration=1).fit(X, y, method='nelder')
     ~~~~
     '''
 
