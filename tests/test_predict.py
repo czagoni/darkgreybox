@@ -182,6 +182,7 @@ class PredictTest(unittest.TestCase):
 
         for (ic_params_map, expected_ic_params) in [
             ({}, {}),
+            ({'D0': 1}, {}),
             ({'A0': lambda X_test, y_test, train_result: X_test['A0'].iloc[0]}, {'A0': 10}),
             ({'B0': lambda X_test, y_test, train_result: y_test.iloc[0]}, {'B0': 1}),
             ({'C0': lambda X_test, y_test, train_result: train_result.Te[0]}, {'C0': 100}),
