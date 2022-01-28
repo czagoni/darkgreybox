@@ -1,39 +1,27 @@
 from abc import ABC
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Union
 
+import lmfit
 import numpy as np
-from lmfit import Parameters, minimize
-from lmfit.minimizer import MinimizerResult
 
 from darkgreybox import logger
 
 
+@dataclass
 class DarkGreyModelResult:
     '''
-    Container object that holds the results of the model
+    Dataclass that holds the results of the fitting of the model to a data set.
+        Z: The measured variable's fit / predicted values
+        X: The input values used to fit the model
+        var: The variables of the model including internal ones if any
+        params: The parameters of the model
     '''
-
-    def __init__(self, Z, **kwargs):
-        '''
-        Parameters
-        ----------
-        Z : np.array
-            The measured variable's fit / predicted values
-        kwargs: kwargs
-            Any other parameters calculated can be passed here.
-
-        ~~~~
-        E.g. in case of a TiTeTh model, Ti is the measured variable and Ti, Te, Th
-        variables can be passed as kwargs for easy access
-
-        DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
-        ~~~~
-        '''
-
-        self.Z = Z
-        for key, val in kwargs.items():
-            setattr(self, key, val)
+    Z: np.ndarray
+    X: Dict
+    params: lmfit.Parameters
+    var: Dict
 
 
 class DarkGreyModel(ABC):
@@ -41,7 +29,7 @@ class DarkGreyModel(ABC):
     Abstract Base Class for DarkGrey Models
     '''
 
-    def __init__(self, params: Union[Parameters, Dict], rec_duration: float):
+    def __init__(self, params: Union[lmfit.Parameters, Dict], rec_duration: float):
         '''
         Initialises the model instance
 
@@ -56,13 +44,13 @@ class DarkGreyModel(ABC):
             The duration of each measurement record in hours
         '''
 
-        self.result = MinimizerResult()
+        self.result = lmfit.minimizer.MinimizerResult()
 
         # convert the params dict into lmfit parameters
-        if isinstance(params, Parameters):
+        if isinstance(params, lmfit.Parameters):
             self.params = deepcopy(params)
         else:
-            self.params = Parameters()
+            self.params = lmfit.Parameters()
             for k, v in params.items():
                 self.params.add(k, **v)
 
@@ -99,7 +87,7 @@ class DarkGreyModel(ABC):
 
         Returns
         -------
-        `lmfit.MinimizerResult`
+        `lmfit.minimizer.MinimizerResult`
             Object containing the optimized parameters and several
             goodness-of-fit statistics.
         '''
@@ -113,7 +101,7 @@ class DarkGreyModel(ABC):
                     logger.warning(f'Key `{k}` not found in initial conditions params')
 
         # we are passing X, y to minimise as kwargs
-        self.result = minimize(
+        self.result = lmfit.minimize(
             obj_func or self.def_obj_func,
             self.params,
             kws={'model': self.model, 'X': X, 'y': y},
@@ -147,7 +135,7 @@ class DarkGreyModel(ABC):
 
         return self.model(self.params, X)
 
-    def model(self, params: Parameters, X: Dict) -> DarkGreyModelResult:
+    def model(self, params: lmfit.Parameters, X: Dict) -> DarkGreyModelResult:
         '''
         A system of differential equations describing the thermal model
         '''
@@ -164,7 +152,7 @@ class DarkGreyModel(ABC):
         return self
 
     @staticmethod
-    def def_obj_func(params: Parameters, *args, **kwargs):
+    def def_obj_func(params: lmfit.Parameters, *args, **kwargs):
         '''
         Default objective function
         Computes the residual between measured data and fitted data

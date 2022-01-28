@@ -9,13 +9,13 @@ from pandas.testing import assert_frame_equal
 from darkgreybox.models import Ti
 from darkgreybox.prefit import apply_prefit_filter, prefit_models
 
-train_start = dt.datetime(2021, 1, 1, 1, 0)
-train_end = dt.datetime(2021, 1, 1, 6, 0)
+TRAIN_START = dt.datetime(2021, 1, 1, 1, 0)
+TRAIN_END = dt.datetime(2021, 1, 1, 6, 0)
 
 y_train = pd.Series([10, 10, 20, 20, 20, 30])
 
 X_train = pd.DataFrame(
-    index=pd.date_range(train_start, train_end, freq='1H'),
+    index=pd.date_range(TRAIN_START, TRAIN_END, freq='1H'),
     data={
         'Ta': [10, 10, 10, 20, 20, 20],
         'Ph': [0, 10, 0, 0, 10, 0],

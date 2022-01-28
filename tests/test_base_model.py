@@ -20,7 +20,7 @@ class DGMTest(DarkGreyModel):
         for i in range(1, num_rec):
             A[i] = C[i] * B
 
-        return DarkGreyModelResult(A)
+        return DarkGreyModelResult(A, X, params, {'A': A})
 
 
 class DarkGreyModelTest(unittest.TestCase):
