@@ -23,9 +23,9 @@ The easiest way to get familiar with DarkGreyBox is to look at the [tutorials](d
 DarkGreyBox requires:
 
 - Python (>= 3.6)
-- lmfit (>= 1.0.2)
-- pandas (>= 1.2.3)
-- joblib (>= 1.0.1)
+- lmfit 
+- pandas 
+- joblib 
 
 Note: these are only the core dependencies and you will most likely want to install either the optional dependencies or your preferred custom alternatives to them.
 
@@ -40,12 +40,12 @@ pip install darkgreybox
 
 This gives you a headstart for using DarkGreyBox in anger.
 
-- scikit-learn (>=0.24.1)
-- numdifftools (>=0.9.39)
-- statsmodels (>=0.12.1)
-- matplotlib (>=3.4.0)
-- jupyter (>=1.0.0)
-- notebook (>=6.1.5)
+- scikit-learn 
+- numdifftools 
+- statsmodels 
+- matplotlib 
+- jupyter 
+- notebook 
 
 You can install these additional dependencies via pip:
 ```bash
@@ -101,12 +101,12 @@ pip install -e .'[dev,test]'
 ### Testing
 
 After installation, you can launch the test suite from the repo root
-directory (you will need to have `pytest` >= 6.2.2 installed):
+directory (you will need to have `pytest` installed):
 ```bash
 pytest
 ```
 
-You can check linting from the repo root directory (you will need to have `flake8` >= 3.9.0 installed):
+You can check linting from the repo root directory (you will need to have `flake8` installed):
 ```bash
 flake8
 ```

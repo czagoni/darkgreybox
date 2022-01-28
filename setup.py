@@ -14,7 +14,7 @@ setup(
     name='darkgreybox',
     version=__VERSION__,
     description='DarkGreyBox: An Open-Source Data-Driven Python Building Thermal Model'
-                'Inspired By Genetic Algorithms and Machine Learning',
+                ' Inspired By Genetic Algorithms and Machine Learning',
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords='python model thermal machine-learning genetic-algorithm data-science',
