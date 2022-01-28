@@ -12,20 +12,20 @@ from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
 from darkgreybox.train import get_ic_params, reduce_results_df, train_model, train_models
 
-train_start = dt.datetime(2021, 1, 1, 1, 0)
-train_end = dt.datetime(2021, 1, 1, 6, 0)
+TRAIN_START = dt.datetime(2021, 1, 1, 1, 0)
+TRAIN_END = dt.datetime(2021, 1, 1, 6, 0)
+
+METHOD = 'nelder'
 
 y_train = pd.Series([10, 10, 20, 20, 20, 30])
 
 X_train = pd.DataFrame(
-    index=pd.date_range(train_start, train_end, freq='1H'),
+    index=pd.date_range(TRAIN_START, TRAIN_END, freq='1H'),
     data={
         'Ta': [10, 10, 10, 20, 20, 20],
         'Ph': [0, 10, 0, 0, 10, 0],
         'Ti0': [10, 10, 20, 20, 20, 30]
     })
-
-method = 'nelder'
 
 params = {
     'Ti0': {'value': 10, 'vary': False},
@@ -49,8 +49,8 @@ class TrainTest(unittest.TestCase):
         error_metric = MagicMock()
 
         expected_df = pd.DataFrame({
-            'start_date': [train_start] * 2,
-            'end_date': [train_end] * 2,
+            'start_date': [TRAIN_START] * 2,
+            'end_date': [TRAIN_END] * 2,
             'model': models,
             'model_result': ['model_result'] * 2,
             'time': [0.0] * 2,
@@ -80,8 +80,8 @@ class TrainTest(unittest.TestCase):
         error_metric = MagicMock()
 
         expected_df = pd.DataFrame({
-            'start_date': [train_start],
-            'end_date': [train_end],
+            'start_date': [TRAIN_START],
+            'end_date': [TRAIN_END],
             'model': [models[0]],
             'model_result': ['model_result'],
             'time': [0.0],
@@ -145,7 +145,7 @@ class TrainTest(unittest.TestCase):
 
         base_model = Ti(params, rec_duration=1)
 
-        actual_df = train_model(base_model, X_train, y_train, error_metric, method)
+        actual_df = train_model(base_model, X_train, y_train, error_metric, METHOD)
         trained_model = actual_df['model'].iloc[0]
 
         self.assertNotEqual(base_model, trained_model)
@@ -169,19 +169,19 @@ class TrainTest(unittest.TestCase):
             'error',
         ])
 
-        actual_df = train_model(base_model, X_train, y_train, error_metric, method)
+        actual_df = train_model(base_model, X_train, y_train, error_metric, METHOD)
 
         self.assertTrue(expected_columns.equals(actual_df.columns))
 
-        self.assertEqual(train_start, actual_df['start_date'].iloc[0])
-        self.assertEqual(train_end, actual_df['end_date'].iloc[0])
+        self.assertEqual(TRAIN_START, actual_df['start_date'].iloc[0])
+        self.assertEqual(TRAIN_END, actual_df['end_date'].iloc[0])
 
         self.assertIsInstance(actual_df['model'].iloc[0], Ti)
 
         assert_allclose(y_train.values, cast(DarkGreyModelResult, actual_df['model_result'].iloc[0]).Z, atol=0.01)
 
         self.assertEqual(1.0, actual_df['time'].iloc[0])
-        self.assertEqual(method, actual_df['method'].iloc[0])
+        self.assertEqual(METHOD, actual_df['method'].iloc[0])
         self.assertAlmostEqual(-0.01, cast(float, actual_df['error'].iloc[0]), places=4)
 
     @patch('darkgreybox.train.copy')
@@ -202,12 +202,12 @@ class TrainTest(unittest.TestCase):
         mock_copy.deepcopy.return_value = mock_model
 
         expected_df = pd.DataFrame({
-            'start_date': [train_start],
-            'end_date': [train_end],
+            'start_date': [TRAIN_START],
+            'end_date': [TRAIN_END],
             'model': [np.NaN],
             'model_result': [np.NaN],
             'time': [timer_stop - timer_start],
-            'method': [method],
+            'method': [METHOD],
             'error': [np.NaN]
         })
 

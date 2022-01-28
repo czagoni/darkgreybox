@@ -115,7 +115,7 @@ class TiTeThRia(DarkGreyModel):
             Te[i] = Te[i-1] + dTe
             Th[i] = Th[i-1] + dTh
 
-        return DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
+        return DarkGreyModelResult(Ti, X, params, {'Ti': Ti, 'Te': Te, 'Th': Th})
 
 
 class TiTeTh(DarkGreyModel):
@@ -226,7 +226,7 @@ class TiTeTh(DarkGreyModel):
             Te[i] = Te[i-1] + dTe
             Th[i] = Th[i-1] + dTh
 
-        return DarkGreyModelResult(Ti, Ti=Ti, Te=Te, Th=Th)
+        return DarkGreyModelResult(Ti, X, params, {'Ti': Ti, 'Te': Te, 'Th': Th})
 
 
 class TiTh(DarkGreyModel):
@@ -323,7 +323,7 @@ class TiTh(DarkGreyModel):
             Ti[i] = Ti[i-1] + dTi
             Th[i] = Th[i-1] + dTh
 
-        return DarkGreyModelResult(Ti, Ti=Ti, Th=Th)
+        return DarkGreyModelResult(Ti, X, params, {'Ti': Ti, 'Th': Th})
 
 
 class TiTe(DarkGreyModel):
@@ -419,7 +419,7 @@ class TiTe(DarkGreyModel):
             Ti[i] = Ti[i-1] + dTi
             Te[i] = Te[i-1] + dTe
 
-        return DarkGreyModelResult(Ti, Ti=Ti, Te=Te)
+        return DarkGreyModelResult(Ti, X, params, {'Ti': Ti, 'Te': Te})
 
 
 class Ti(DarkGreyModel):
@@ -508,4 +508,4 @@ class Ti(DarkGreyModel):
 
             Ti[i] = Ti[i-1] + dTi
 
-        return DarkGreyModelResult(Ti, Ti=Ti)
+        return DarkGreyModelResult(Ti, X, params, {'Ti': Ti})

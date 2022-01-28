@@ -3,6 +3,7 @@ import unittest
 from typing import Any, Callable, Dict, Union, cast
 from unittest.mock import MagicMock, patch
 
+import lmfit
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
@@ -12,11 +13,13 @@ from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
 from darkgreybox.predict import map_ic_params, predict_model, predict_models
 
-test_start = dt.datetime(2021, 1, 1, 7, 0)
-test_end = dt.datetime(2021, 1, 1, 8, 0)
+EMPTY_MODEL_RESULT = DarkGreyModelResult(np.zeros(1), {}, lmfit.Parameters(), {})
+
+TEST_START = dt.datetime(2021, 1, 1, 7, 0)
+TEST_END = dt.datetime(2021, 1, 1, 8, 0)
 
 X_test = pd.DataFrame(
-    index=pd.date_range(test_start, test_end, freq='1H'),
+    index=pd.date_range(TEST_START, TEST_END, freq='1H'),
     data={
         'Ta': [10, 10],
         'Ph': [10, 0],
@@ -44,12 +47,12 @@ class PredictTest(unittest.TestCase):
         mock_predict_model.side_effect = mock_predict_model_side_effect
 
         models = [MagicMock()] * 2
-        train_results = [DarkGreyModelResult(None)] * 2
+        train_results = [EMPTY_MODEL_RESULT] * 2
         ic_params_map = {}
 
         expected_df = pd.DataFrame({
-            'start_date': [test_start, test_start],
-            'end_date': [test_end, test_end],
+            'start_date': [TEST_START, TEST_START],
+            'end_date': [TEST_END, TEST_END],
             'model': models,
             'model_result': ['model_result'] * 2,
             'time': [0.0] * 2,
@@ -119,8 +122,8 @@ class PredictTest(unittest.TestCase):
 
         self.assertTrue(expected_columns.equals(actual_df.columns))
 
-        self.assertEqual(test_start, actual_df['start_date'].iloc[0])
-        self.assertEqual(test_end, actual_df['end_date'].iloc[0])
+        self.assertEqual(TEST_START, actual_df['start_date'].iloc[0])
+        self.assertEqual(TEST_END, actual_df['end_date'].iloc[0])
 
         self.assertIsInstance(actual_df['model'].iloc[0], Ti)
 
@@ -133,15 +136,14 @@ class PredictTest(unittest.TestCase):
     def test__predict_model__returns_correct_dataframe__for_not_a_model_instance(self, mock_timer):
 
         model = 'not-a-model'
-        train_result = DarkGreyModelResult(None)
 
         timer_start = 1.0
         timer_stop = 2.0
         mock_timer.side_effect = [timer_start, timer_stop]
 
         expected_df = pd.DataFrame({
-            'start_date': [test_start],
-            'end_date': [test_end],
+            'start_date': [TEST_START],
+            'end_date': [TEST_END],
             'model': [np.nan],
             'model_result': [np.nan],
             'time': [timer_stop - timer_start],
@@ -154,7 +156,7 @@ class PredictTest(unittest.TestCase):
             y_test=y_test,
             ic_params_map={},
             error_metric=error_metric,
-            train_result=train_result,
+            train_result=EMPTY_MODEL_RESULT,
         )
 
         assert_frame_equal(expected_df, actual_df)
@@ -207,8 +209,8 @@ def mock_predict_model_side_effect(
     train_result: DarkGreyModelResult,
 ) -> pd.DataFrame:
     return pd.DataFrame({
-        'start_date': [test_start],
-        'end_date': [test_end],
+        'start_date': [TEST_START],
+        'end_date': [TEST_END],
         'model': [model],
         'model_result': ['model_result'],
         'time': [0.0],

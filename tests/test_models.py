@@ -24,8 +24,8 @@ class TiTest(unittest.TestCase):
         m = Ti(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([10, 50, 10]), actual_result.Ti)
-        assert_array_equal(actual_result.Z, actual_result.Ti)
+        assert_array_equal(np.array([10, 50, 10]), actual_result.var['Ti'])
+        assert_array_equal(actual_result.Z, actual_result.var['Ti'])
 
     def test__fit(self):
 
@@ -72,9 +72,9 @@ class TiThTest(unittest.TestCase):
         m = TiTh(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([10, 30, 10]), actual_result.Ti)
-        assert_array_equal(np.array([20, 30, 30]), actual_result.Th)
-        assert_array_equal(actual_result.Z, actual_result.Ti)
+        assert_array_equal(np.array([10, 30, 10]), actual_result.var['Ti'])
+        assert_array_equal(np.array([20, 30, 30]), actual_result.var['Th'])
+        assert_array_equal(actual_result.Z, actual_result.var['Ti'])
 
     def test__fit(self):
 
@@ -124,8 +124,8 @@ class TiTeTest(unittest.TestCase):
         m = TiTe(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([20, 20, 20]), actual_result.Ti)
-        assert_array_equal(np.array([10, 20, 17.5]), actual_result.Te)
+        assert_array_equal(np.array([20, 20, 20]), actual_result.var['Ti'])
+        assert_array_equal(np.array([10, 20, 17.5]), actual_result.var['Te'])
 
     def test__fit(self):
 
@@ -178,9 +178,9 @@ class TiTeThTest(unittest.TestCase):
         m = TiTeTh(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([20, 12.5, 16.5625]), actual_result.Ti)
-        assert_array_equal(np.array([10, 20, 10]), actual_result.Te)
-        assert_array_equal(np.array([10, 13.75, 13.59375]), actual_result.Th)
+        assert_array_equal(np.array([20, 12.5, 16.5625]), actual_result.var['Ti'])
+        assert_array_equal(np.array([10, 20, 10]), actual_result.var['Te'])
+        assert_array_equal(np.array([10, 13.75, 13.59375]), actual_result.var['Th'])
 
     def test__fit(self):
 
@@ -237,9 +237,9 @@ class TiTeThRiaTest(unittest.TestCase):
         m = TiTeThRia(params=params, rec_duration=1)
         actual_result = m.model(m.params, X)
 
-        assert_array_equal(np.array([20, 11.875, 16.2890625]), actual_result.Ti)
-        assert_array_equal(np.array([10, 20, 9.375]), actual_result.Te)
-        assert_array_equal(np.array([10, 13.75, 13.515625]), actual_result.Th)
+        assert_array_equal(np.array([20, 11.875, 16.2890625]), actual_result.var['Ti'])
+        assert_array_equal(np.array([10, 20, 9.375]), actual_result.var['Te'])
+        assert_array_equal(np.array([10, 13.75, 13.515625]), actual_result.var['Th'])
 
     def test__fit(self):
 
