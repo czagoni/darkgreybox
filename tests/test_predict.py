@@ -5,16 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
-from pandas.testing import assert_frame_equal
 from numpy.testing import assert_allclose
+from pandas.testing import assert_frame_equal
 
 from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
-from darkgreybox.predict import (
-    map_ic_params,
-    predict_model,
-    predict_models,
-)
+from darkgreybox.predict import map_ic_params, predict_model, predict_models
 
 test_start = dt.datetime(2021, 1, 1, 7, 0)
 test_end = dt.datetime(2021, 1, 1, 8, 0)

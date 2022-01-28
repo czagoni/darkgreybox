@@ -10,13 +10,7 @@ from pandas.testing import assert_frame_equal
 
 from darkgreybox.base_model import DarkGreyModel, DarkGreyModelResult
 from darkgreybox.models import Ti
-from darkgreybox.train import (
-    get_ic_params,
-    reduce_results_df,
-    train_model,
-    train_models
-)
-
+from darkgreybox.train import get_ic_params, reduce_results_df, train_model, train_models
 
 train_start = dt.datetime(2021, 1, 1, 1, 0)
 train_end = dt.datetime(2021, 1, 1, 6, 0)
