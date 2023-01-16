@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup
 
-__VERSION__ = '0.3.0'
+__VERSION__ = '0.3.1'
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -21,7 +21,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/czagoni/darkgreybox',
-    download_url='https://github.com/czagoni/darkgreybox/archive/refs/tags/0.3.0.tar.gz',
+    download_url='https://github.com/czagoni/darkgreybox/archive/refs/tags/0.3.1.tar.gz',
 
     # Author details
     author='csaba zagoni',
@@ -57,9 +57,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'lmfit~=1.0.3',
-        'pandas~=1.4.0',
-        'joblib~=1.1.0'
+        'lmfit~=1.1.0',
+        'pandas~=1.5.2',
+        'joblib~=1.2.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -70,18 +70,18 @@ setup(
         'dev': [
             'statsmodels~=0.13.1',
             'numdifftools~=0.9.39',
-            'scikit-learn~=1.0.2',
-            'matplotlib~=3.5.1',
-            'jupyter==1.0.0',
-            'notebook==6.4.8',
-            'autopep8==1.5.7',
-            'isort==5.10.1',
+            'scikit-learn~=1.2.0',
+            'matplotlib~=3.6.3',
+            'jupyter~=1.0.0',
+            'notebook~=6.5.2',
+            'autopep8~=2.0.1',
+            'isort~=5.11.4',
         ],
         'test': [
-            'flake8~=4.0.1',
-            'pytest~=6.2.2',
-            'pytest-mock~=3.7.0',
-            'pytest-cov~=3.0.0',
+            'flake8~=6.0.0',
+            'pytest~=7.2.1',
+            'pytest-mock~=3.10.0',
+            'pytest-cov~=4.0.0',
         ],
     },
 
