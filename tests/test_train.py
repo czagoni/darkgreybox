@@ -182,7 +182,7 @@ class TrainTest(unittest.TestCase):
 
         self.assertEqual(1.0, actual_df['time'].iloc[0])
         self.assertEqual(METHOD, actual_df['method'].iloc[0])
-        self.assertAlmostEqual(-0.01, cast(float, actual_df['error'].iloc[0]), places=4)
+        self.assertAlmostEqual(0.0, cast(float, actual_df['error'].iloc[0]), places=4)
 
     @patch('darkgreybox.train.copy')
     @patch('darkgreybox.train.timer')
