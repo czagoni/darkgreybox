@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup
 
-__VERSION__ = '0.3.1'
+__VERSION__ = '0.3.2'
 
 with open("README.md", "r") as f:
     long_description = f.read()
