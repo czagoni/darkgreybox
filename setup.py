@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup
 
-__VERSION__ = '0.3.1'
+__VERSION__ = '0.3.2'
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -57,9 +57,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'lmfit~=1.1.0',
-        'pandas~=1.5.2',
-        'joblib~=1.2.0'
+        'lmfit<2,>=1.1.0',
+        'pandas<3,>=1.5.2',
+        'joblib<2,>=1.2.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
